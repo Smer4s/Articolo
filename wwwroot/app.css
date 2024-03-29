@@ -1,11 +1,87 @@
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: #F6F6F6;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 a, .btn-link {
     color: #558CB7;
     text-decoration: none;
 }
+
+.pages-layout {
+    padding-top: 4vh;
+    padding-left: 18.9vw;
+    padding-right: 13vw;
+    max-width: 82vw;
+    display: flex;
+    flex-direction: column;
+}
+
+.top-boxes{
+    display:flex;
+}
+
+.horizontal-boxes {
+    display: flex;
+    flex: 1; 
+    flex-direction: column;
+    max-width:78%;
+}
+
+.article-content {
+    color: #3D3D3D;
+    font-size: large;
+    font-weight: bold;
+    word-wrap:break-word;
+}
+
+.article-box {
+    margin-top: 2vh;
+    min-height:10vh;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+
+
+.feed-leaderboard-box {
+    margin-left:3%;
+    width: 19%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+    .feed-leaderboard-box .leaderboard-title {
+        color: #3D3D3D;
+        font-size: large;
+        font-weight: bold;
+    }
+
+.feed-filters-box {
+    padding-right: 13vw;
+    display: flex;
+    height: 5vh;
+    width: 78%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+    .feed-filters-box .filters-title {
+        text-align: center;
+        color: #3D3D3D;
+        font-size: xx-large;
+        font-weight: bold;
+        align-self: flex-start;
+        margin-left: 20%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 
 .auth-container {
     padding: 4%;
@@ -55,8 +131,6 @@ a, .btn-link {
         flex-direction: column;
     }
 
-
-
 .app-title {
     text-align: center;
     color: #3D3D3D;
@@ -64,8 +138,10 @@ a, .btn-link {
     font-weight: bold;
     position: absolute;
     left: 25%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-
 
 .btn-primary {
     color: #fff;
