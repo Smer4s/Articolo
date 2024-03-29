@@ -1,15 +1,15 @@
-using Articolo.Components;
+using Web.Components;
+using Web.Configurations;
 
-namespace Articolo
+namespace Web
 {
-    public class Program
+    public static class Program
     {
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddRazorComponents()
-                .AddInteractiveServerComponents();
+            builder.Services.AddWebServices();
 
             var app = builder.Build();
 
@@ -24,10 +24,10 @@ namespace Articolo
             app.UseStaticFiles();
             app.UseAntiforgery();
 
-            app.MapGet("/", (HttpResponse httpresponse) => httpresponse.Redirect("/feed"));
-
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode();
+
+            app.MapGet("/", (HttpResponse httpresponse) => httpresponse.Redirect("/feed"));
 
             app.Run();
         }
