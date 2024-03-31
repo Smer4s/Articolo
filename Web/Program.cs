@@ -1,5 +1,6 @@
 using Web.Components;
 using Web.Configurations;
+using ApplicationDependencyInjection = Web.Configurations.DependencyInjection;
 
 namespace Web
 {
@@ -9,7 +10,13 @@ namespace Web
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Services.AddMediatR(config =>
+            {
+                config.RegisterServicesFromAssemblies(typeof(ApplicationDependencyInjection).Assembly);
+            });
+
             builder.Services.AddWebServices();
+            builder.Services.AddInfrastructureServices(builder.Configuration);
 
             var app = builder.Build();
 
