@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Ardalis.GuardClauses;
+using Domain.Entities;
 using Domain.Repositories;
 
 namespace Domain.Services
@@ -11,9 +12,15 @@ namespace Domain.Services
         public async Task Delete(int id) => 
             await userRepository.Delete(id);
 
-        public async Task<User> Get(int id) => 
-            await userRepository.Get(id) ?? throw new Exception();
+        public async Task<User> Get(int id)
+        {
+            var user = await userRepository.Get(id);
 
+            Guard.Against.NotFound(id, user);
+
+            return user;
+        }
+            
         public async Task Update(int id, User updateUser) =>
             await userRepository.Update(id, updateUser);
     }

@@ -1,0 +1,38 @@
+using Client.Components;
+using Client.Configurations;
+using Client.Services.Abstractions;
+using Client.Services.Auth;
+using Microsoft.Extensions.Configuration;
+
+namespace Client
+{
+    public static class Program
+    {
+        public static void Main(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
+
+            builder.Services.AddWebServices(builder.Configuration);
+
+            var app = builder.Build();
+
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseExceptionHandler("/Error");
+                app.UseHsts();
+            }
+
+            app.UseHttpsRedirection();
+
+            app.UseStaticFiles();
+            app.UseAntiforgery();
+
+            app.MapRazorComponents<App>()
+                .AddInteractiveServerRenderMode();
+
+            app.MapGet("/", (HttpResponse httpresponse) => httpresponse.Redirect("/feed"));
+
+            app.Run();
+        }
+    }
+}

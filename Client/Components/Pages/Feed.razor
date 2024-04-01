@@ -1,0 +1,51 @@
+﻿@page "/feed"
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Лента</PageTitle>
+
+<div class="pages-layout">
+    @authMessage
+    <div class="top-boxes">
+        <div class="feed-filters-box">
+            <div class="filters-title">Моя лента</div>
+        </div>
+        <div class="feed-leaderboard-box">
+            <div class="leaderboard-title">Лучшие статьи</div>
+        </div>
+    </div>
+    <div class="horizontal-boxes">
+        <div class="article-box">
+            <div class="article-content">
+                content
+            </div>
+        </div>
+        <div class="article-box">
+            <div class="article-content">
+                content
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string authMessage = "The user is NOT authenticated.";
+
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (authenticationState is not null)
+        {
+            var authState = await authenticationState;
+            var user = authState?.User;
+
+            if (user?.Identity is not null && user.Identity.IsAuthenticated)
+            {
+                authMessage = $"{user.Identity.Name} is authenticated.";
+            }
+        }
+    }
+}

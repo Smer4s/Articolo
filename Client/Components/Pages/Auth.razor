@@ -1,0 +1,47 @@
+﻿@page "/auth"
+
+@using Client.Models.Auth
+@using Client.Services.Abstractions;
+@rendermode InteractiveServer
+
+@inject NavigationManager NavigationManager
+@inject IAuthenticationService authService
+
+
+<PageTitle>Вход</PageTitle>
+
+<div class="auth-container">
+    <div class="auth-box">
+        <h1 class="element">Вход</h1>
+
+        <div class="element">
+            <label>Логин</label>
+            <input class="auth-input" type="text" @bind-value="credentials.Login" />
+        </div>
+
+        <div class="element">
+            <label>Пароль</label>
+            <input class="auth-input" type="password" @bind-value="credentials.Password" />
+        </div>
+
+        <div class="element">
+            <button class="auth-btn" @onclick="ClickAuthButton">Войти</button>
+            <label style="color:red">@failureMessage</label>
+        </div>
+
+        <div class="text-black">
+            Первый раз у нас?
+            <a href="/reg">Регистрация</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    AuthCredentials credentials = new();
+    string failureMessage = "";
+
+    async Task ClickAuthButton()
+    {
+        await authService.Authenticate(credentials);
+    }
+}

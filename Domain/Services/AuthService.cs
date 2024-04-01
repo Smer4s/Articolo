@@ -1,27 +1,37 @@
-﻿using Domain.Models;
+﻿using Ardalis.GuardClauses;
+using Domain.Models;
 using Domain.Repositories;
 
 namespace Domain.Services
 {
     public class AuthService(IUserRepository userRepository)
     {
-        public async Task<ApiToken?> GetToken(LoginModel loginModel)
+        public async Task<ApiTokenModel> GetToken(LoginModel loginModel)
         {
             var user = await userRepository.Find(u => u.UserName == loginModel.Login && u.Password == loginModel.Password);
 
 
-            if (user is not null)
+            if (user is null)
             {
-                var token = new ApiToken()
-                {
-                    AccessToken = "AccessToken",
-                    RefreshToken = "RefreshToken"
-                };
-
-                return token;
+                Guard.Against.NotFound(loginModel.Login, user);
             }
 
-            return null;
+            var token = new ApiTokenModel()
+            {
+                AccessToken = "AccessToken",
+                RefreshToken = "RefreshToken"
+            };
+
+            return token;
+        }
+
+        public async Task<ApiTokenModel> RefreshToken(ApiTokenModel apiToken)
+        {
+            return await Task.FromResult(new ApiTokenModel()
+            {
+                AccessToken = "new" + apiToken.AccessToken,
+                RefreshToken = "new" + apiToken.RefreshToken,
+            });
         }
     }
 }
