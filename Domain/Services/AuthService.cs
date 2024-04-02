@@ -8,7 +8,7 @@ namespace Domain.Services
     {
         public async Task<ApiTokenModel> GetToken(LoginModel loginModel)
         {
-            var user = await userRepository.Find(u => u.UserName == loginModel.Login && u.Password == loginModel.Password);
+            var user = await userRepository.Find(u => u.Login == loginModel.Login && u.Password == loginModel.Password);
 
 
             if (user is null)
