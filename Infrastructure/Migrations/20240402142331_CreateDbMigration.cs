@@ -26,6 +26,13 @@ namespace Infrastructure.Migrations
                 nullable: false,
                 defaultValue: "");
 
+            migrationBuilder.AddColumn<string>(
+                name: "RefreshToken",
+                schema: "public",
+                table: "Users",
+                type: "text",
+                nullable: true);
+
             migrationBuilder.AddColumn<Role>(
                 name: "Role",
                 schema: "public",
@@ -304,6 +311,11 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.DropColumn(
                 name: "Login",
+                schema: "public",
+                table: "Users");
+
+            migrationBuilder.DropColumn(
+                name: "RefreshToken",
                 schema: "public",
                 table: "Users");
 

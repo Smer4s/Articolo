@@ -4,25 +4,13 @@ using Domain.Repositories;
 
 namespace Domain.Services
 {
-    public class AuthService(IUserRepository userRepository)
+    public class AuthService(UserService users, TokenService tokenService)
     {
         public async Task<ApiTokenModel> GetToken(LoginModel loginModel)
         {
-            var user = await userRepository.Find(u => u.Login == loginModel.Login && u.Password == loginModel.Password);
+            var user = await users.Find(u => u.Login == loginModel.Login && u.Password == loginModel.Password);
 
-
-            if (user is null)
-            {
-                Guard.Against.NotFound(loginModel.Login, user);
-            }
-
-            var token = new ApiTokenModel()
-            {
-                AccessToken = "AccessToken",
-                RefreshToken = "RefreshToken"
-            };
-
-            return token;
+           return tokenService.GenerateTokens(user);
         }
 
         public async Task<ApiTokenModel> RefreshToken(ApiTokenModel apiToken)
@@ -32,6 +20,15 @@ namespace Domain.Services
                 AccessToken = "new" + apiToken.AccessToken,
                 RefreshToken = "new" + apiToken.RefreshToken,
             });
+        }
+
+        public async Task Logout(int id)
+        {
+            var user = await users.Get(id);
+
+            user.RefreshToken = null;
+
+            await users.Update(user);
         }
     }
 }

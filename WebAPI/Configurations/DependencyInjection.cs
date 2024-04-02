@@ -3,6 +3,7 @@ using Domain.Services;
 using Infrastructure;
 using Infrastructure.Repositories;
 using Microsoft.OpenApi.Models;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace WebAPI.Configurations;
 
@@ -42,6 +43,8 @@ public static class DependencyInjection
     {
         services.AddTransient<AuthService>();
         services.AddTransient<UserService>();
+        services.AddTransient<TokenService>();
+        services.AddTransient<JwtSecurityTokenHandler>();
     }
 
     public static void AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)

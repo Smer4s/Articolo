@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(PostgreDbContext))]
-    [Migration("20240402134534_CreateDbMigration")]
+    [Migration("20240402142331_CreateDbMigration")]
     partial class CreateDbMigration
     {
         /// <inheritdoc />
@@ -175,6 +175,9 @@ namespace Infrastructure.Migrations
 
                     b.Property<string>("Password")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RefreshToken")
                         .HasColumnType("text");
 
                     b.Property<Role>("Role")

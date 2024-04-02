@@ -1,3 +1,5 @@
+using Domain.Entities;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
 using WebAPI.Configurations;
 using WebAPI.Middleware;
@@ -7,48 +9,54 @@ namespace WebAPI;
 
 public class Program
 {
-    public static void Main(string[] args)
-    {
-        var builder = WebApplication.CreateBuilder(args);
+	public static void Main(string[] args)
+	{
+		var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.AddMediatR(config =>
-        {
-            config.RegisterServicesFromAssemblies(typeof(ApplicationDependencyInjection).Assembly);
-        });
+		builder.Services.AddMediatR(config =>
+		{
+			config.RegisterServicesFromAssemblies(typeof(ApplicationDependencyInjection).Assembly);
+		});
 
-        builder.Services.AddSwagger();
+		builder.Services.AddSwagger();
 
-        builder.Services.AddControllers();
+		builder.Services.AddControllers();
 
-        builder.Services.AddWebServices();
-        builder.Services.AddInfrastructureServices(builder.Configuration);
+		builder.Services.AddWebServices();
+		builder.Services.AddInfrastructureServices(builder.Configuration);
 
-        var app = builder.Build();
+		builder.Services.AddAutoMapper(cfg => cfg.CreateMap<User, User>());
 
-        if (!app.Environment.IsDevelopment())
-        {
-            app.UseExceptionHandler("/Error");
-            app.UseHsts();
-        }
+		builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+			.AddJwtBearer();
+		builder.Services.AddAuthorization();
 
-        app.UseMiddleware<ExceptionMiddleware>();
+		var app = builder.Build();
 
-        app.UseSwagger();
-        app.UseSwaggerUI();
+		if (!app.Environment.IsDevelopment())
+		{
+			app.UseExceptionHandler("/Error");
+			app.UseHsts();
+		}
 
-        app.UseRouting();
-        app.UseAuthentication();
-        app.UseAuthorization();
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapControllers();
-        });
+		app.UseMiddleware<ExceptionMiddleware>();
 
-        app.UseHttpsRedirection();
+		app.UseSwagger();
+		app.UseSwaggerUI();
 
-        app.MapGet("/", (HttpResponse httpresponse) => httpresponse.Redirect("/swagger/index.html"))
-            .ExcludeFromDescription();
+		app.UseRouting();
+		app.UseAuthentication();
+		app.UseAuthorization();
+		app.UseEndpoints(endpoints =>
+		{
+			endpoints.MapControllers();
+		});
 
-        app.Run();
-    }
+		app.UseHttpsRedirection();
+
+		app.MapGet("/", (HttpResponse httpresponse) => httpresponse.Redirect("/swagger/index.html"))
+			.ExcludeFromDescription();
+
+		app.Run();
+	}
 }
