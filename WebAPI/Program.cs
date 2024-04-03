@@ -1,5 +1,8 @@
 using Domain.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.OAuth;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using WebAPI.Configurations;
 using WebAPI.Middleware;
@@ -24,12 +27,10 @@ public class Program
 
 		builder.Services.AddWebServices();
 		builder.Services.AddInfrastructureServices(builder.Configuration);
+		builder.Services.ConfigureAutoMapper();
+		builder.Services.ConfigureAuthorization(builder.Configuration);
 
-		builder.Services.AddAutoMapper(cfg => cfg.CreateMap<User, User>());
-
-		builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-			.AddJwtBearer();
-		builder.Services.AddAuthorization();
+		
 
 		var app = builder.Build();
 

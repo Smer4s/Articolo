@@ -1,7 +1,13 @@
-﻿using Domain.Repositories;
+﻿using Domain.Configurations;
+using Domain.Entities;
+using Domain.Repositories;
 using Domain.Services;
 using Infrastructure;
 using Infrastructure.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.OAuth;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.IdentityModel.Tokens.Jwt;
 
@@ -55,7 +61,34 @@ public static class DependencyInjection
         services.AddRepositories();
     }
 
-    private static void AddRepositories(this IServiceCollection services)
+    public static void ConfigureAutoMapper(this IServiceCollection services)
+    {
+		services.AddAutoMapper(cfg => cfg.CreateMap<User, User>());
+	}
+
+	public static void ConfigureAuthorization(this IServiceCollection services, IConfiguration configuration)
+    {        
+		services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+			.AddJwtBearer(options =>
+			{
+				options.RequireHttpsMetadata = false;
+				options.TokenValidationParameters = new TokenValidationParameters
+				{
+					ValidateIssuer = true,
+					ValidIssuer = AuthOptions.ISSUER,
+					ValidateAudience = true,
+					ValidAudience = AuthOptions.AUDIENCE,
+					ValidateLifetime = true,
+					LifetimeValidator = AuthOptions.LifetimeValidator,
+					IssuerSigningKey = AuthOptions.SymmetricSecurityKey,
+					ValidateIssuerSigningKey = true,
+				};
+			});
+		services.AddAuthorization();
+	}
+
+
+	private static void AddRepositories(this IServiceCollection services)
     {
         services.AddTransient<IUserRepository, UserRepository>();
     }

@@ -1,6 +1,7 @@
-﻿using Domain.Entities;
-using Domain.Enums;
+﻿using Domain.Configurations;
+using Domain.Entities;
 using Domain.Models;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -30,7 +31,11 @@ public class TokenService(JwtSecurityTokenHandler tokenHandler)
 	{
 		var jwt = new JwtSecurityToken( 
 			claims: identity.Claims, 
-			expires: DateTime.Now.AddMinutes(20));
+			expires: DateTime.Now.AddMinutes(AuthOptions.LIFETIME),
+			issuer: AuthOptions.ISSUER,
+			audience: AuthOptions.AUDIENCE,
+			signingCredentials: new SigningCredentials(AuthOptions.SymmetricSecurityKey, SecurityAlgorithms.HmacSha256)
+			);
 
 		return tokenHandler.WriteToken(jwt);
 	}
