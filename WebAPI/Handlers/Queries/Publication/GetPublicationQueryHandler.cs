@@ -10,7 +10,7 @@ public class GetPublicationQueryHandler(IMapper mapper, PublicationService publi
 {
 	public async Task<GetPublicationDto> Handle(GetPublicationQuery request, CancellationToken cancellationToken)
 	{
-		var publ = await publicationService.GetPublication(request.Id);
+		var publ = await publicationService.Get(request.Id);
 
 		return mapper.Map<GetPublicationDto>(publ);
 	}

@@ -62,5 +62,14 @@ namespace Domain.Services
 			user.Description = dto.Description;
 			user.BirthDay = dto.BirthDay;
 		}
+
+		public async Task<IEnumerable<Publication>> GetFavorites(int id)
+		{
+			var user = await userRepository.GetFavorites(id);
+
+			Guard.Against.NotFound(id, user);
+
+			return user.Favorites ?? [];
+		}
 	}
 }

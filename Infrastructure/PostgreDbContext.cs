@@ -89,6 +89,10 @@ namespace Infrastructure
                 .HasMany(p => p.Reactions)
                 .WithOne(r => r.Publication);
 
+            builder.Entity<Publication>()
+                .HasMany(p => p.Favourites)
+                .WithMany(x => x.Favorites);
+
             builder
                 .Entity<Theme>()
                 .HasOne(t => t.Category)

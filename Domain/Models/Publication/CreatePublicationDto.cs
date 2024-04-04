@@ -1,6 +1,4 @@
-﻿using Domain.Entities;
-
-namespace Domain.Models.Publication;
+﻿namespace Domain.Models.Publication;
 
 public record CreatePublicationDto
 {

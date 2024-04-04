@@ -1,4 +1,5 @@
 ﻿using Domain.Models.Publication;
+using Infrastructure.Migrations;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,7 +13,7 @@ namespace WebAPI.Controllers;
 [Route("/publication")]
 public class PublicationController(IMediator mediator) : ControllerBase
 {
-	[HttpGet("/{id}")]
+	[HttpGet("{id}")]
 	public async Task<IActionResult> GetPublication(int id)
 	{
 		var query = new GetPublicationQuery
@@ -49,14 +50,31 @@ public class PublicationController(IMediator mediator) : ControllerBase
 		return Ok();
 	}
 
+	[HttpPost("favorites/{id}")]
+	[Authorize]
+	public async Task<IActionResult> AddToFavorites(int id)
+	{
+		await mediator.Send(new AddPublicationToFavoritesCommand
+		{
+			Id = id,
+			UserId = User.GetId(),
+		});
+
+		return Ok();
+	}
+
 	[HttpPut]
 	[Authorize]
-	public async Task<IActionResult> EditMyPublication()
+	public async Task<IActionResult> EditMyPublication(UpdatePublicationDto dto)
 	{
-		var command = new EditPublicationCommand()
+		var command = new UpdatePublicationCommand()
 		{
-			Id = User.GetId(),
-		};
+			UserId = User.GetId(),
+			Id = dto.Id,
+            ThemeIds = dto.ThemeIds,
+            Title = dto.Title,
+            XmlDocument = dto.XmlDocument
+        };
 		await mediator.Send(command);
 
 		return Ok();

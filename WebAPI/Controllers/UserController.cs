@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq.Expressions;
 using WebAPI.Extensions;
+using WebAPI.Handlers.Commands.User;
 using WebAPI.Models.Commands.User;
 using WebAPI.Models.Queries.User;
 
@@ -54,5 +55,17 @@ public class UserController(IMediator mediator) : ControllerBase
 		await mediator.Send(command);
 
 		return Ok();
+	}
+
+	[Authorize]
+	[HttpGet("favs")]
+	public async Task<IActionResult> GetFavorites()
+	{
+		var pubs = await mediator.Send(new GetFavoritesCommand
+		{
+			Id = User.GetId(),
+		});
+
+		return Ok(pubs);
 	}
 }

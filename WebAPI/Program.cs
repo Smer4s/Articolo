@@ -28,7 +28,7 @@ public class Program
 		builder.Services.AddWebServices();
 		builder.Services.AddInfrastructureServices(builder.Configuration);
 		builder.Services.ConfigureAutoMapper();
-		builder.Services.ConfigureAuthorization(builder.Configuration);
+		builder.Services.ConfigureAuthorization();
 
 		var app = builder.Build();
 

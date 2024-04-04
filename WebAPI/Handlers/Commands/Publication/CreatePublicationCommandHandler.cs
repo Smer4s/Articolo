@@ -16,6 +16,6 @@ public class CreatePublicationCommandHandler(PublicationService publicationServi
 			Title = request.Title,
 			XmlDocument = request.XmlDocument,
 		};
-		await publicationService.CreatePublication(request.UserId, dto);
+		await publicationService.Create(request.UserId, dto);
 	}
 }

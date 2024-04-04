@@ -8,7 +8,7 @@ public record GetPublicationDto
 {
 	public int Id { get; init; }
 	public string Title { get; init; } = null!;
-	public Status Status { get; init; }
+	public string Status { get; init; } = null!;
 	public string XmlDocumentUrl { get; init; } = null!;
 
 	public IList<ThemeDto> Themes { get; init; } = null!;
