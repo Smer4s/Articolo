@@ -1,4 +1,7 @@
-﻿namespace Client.Models.Auth
+﻿using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
+
+namespace Client.Models.Auth
 {
     public class AuthCredentials
     {

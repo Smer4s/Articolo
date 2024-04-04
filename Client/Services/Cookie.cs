@@ -13,7 +13,10 @@ public class Cookie : ICookie
         JSRuntime = jsRuntime;
         ExpireDays = 300;
     }
-
+    public async Task DeleteCookie(string key)
+    {
+        await SetCookie($"{key}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;");
+    }
     public async Task SetValue(string key, string value, int? days = null)
     {
         var curExp = days != null ? days > 0 ? DateToUTC(days.Value) : "" : expires;

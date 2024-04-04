@@ -30,6 +30,13 @@ a, .btn-link {
     max-width:78%;
 }
 
+.article-title {
+    color: #3D3D3D;
+    font-size: xx-large;
+    font-weight: bold;
+    word-wrap: break-word;
+}
+
 .article-content {
     color: #3D3D3D;
     font-size: large;
@@ -52,12 +59,17 @@ a, .btn-link {
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-direction:column;
 }
 
     .feed-leaderboard-box .leaderboard-title {
         color: #3D3D3D;
         font-size: large;
         font-weight: bold;
+    }
+
+    .feed-leaderboard-box .leaderboard-content {
+        padding-top:2em;
     }
 
 .feed-filters-box {

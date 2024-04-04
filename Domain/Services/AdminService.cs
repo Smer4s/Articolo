@@ -10,6 +10,9 @@ public class AdminService(IUserRepository users)
     public Task<IList<User>> GetModerators() =>
         users.GetUsers(x => x.Role is Enums.Role.Moderator);
 
+    public Task<IList<User>> GetUsers()=>
+        users.GetUsers(x=>x.Role is Enums.Role.Default);
+
     public async Task MakeModerator(int userId)
     {
         var user = await users.Get(userId);

@@ -1,8 +1,5 @@
 using Client.Components;
 using Client.Configurations;
-using Client.Services.Abstractions;
-using Client.Services.Auth;
-using Microsoft.Extensions.Configuration;
 
 namespace Client
 {
@@ -30,7 +27,7 @@ namespace Client
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode();
 
-            app.MapGet("/", (HttpResponse httpresponse) => httpresponse.Redirect("/feed"));
+            app.MapGet("/", (HttpResponse httpresponse) => httpresponse.Redirect("/publication-create"));
 
             app.Run();
         }

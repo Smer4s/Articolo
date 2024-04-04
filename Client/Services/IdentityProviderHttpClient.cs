@@ -2,19 +2,19 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Net.Http.Headers;
 
-namespace Client.Services.Auth;
+namespace Client.Services;
 
 public class IdentityProviderHttpClient : IIdentityProviderHttpClient
 {
     private readonly HttpClient _httpClient;
-    private readonly string? AccessToken;
+    private string? accessToken;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public IdentityProviderHttpClient(
         IHttpContextAccessor httpContextAccessor,
         IHttpClientFactory httpClientFactory)
     {
-        AccessToken = httpContextAccessor.HttpContext?.Request.Cookies["access_token"];
-
+        _httpContextAccessor = httpContextAccessor;
         _httpClient = httpClientFactory.CreateClient();
     }
 
@@ -31,9 +31,11 @@ public class IdentityProviderHttpClient : IIdentityProviderHttpClient
 
     private void AddAuthorizationHeader(HttpRequestMessage request)
     {
-        if (!string.IsNullOrEmpty(AccessToken))
+        accessToken = _httpContextAccessor.HttpContext?.Request.Cookies["access_token"];
+
+        if (!string.IsNullOrEmpty(accessToken))
         {
-            request.Headers.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, AccessToken);
+            request.Headers.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, accessToken);
         }
     }
 }

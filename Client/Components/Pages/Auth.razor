@@ -6,6 +6,7 @@
 
 @inject NavigationManager NavigationManager
 @inject IAuthenticationService authService
+@inject ICookie cookieService
 
 
 <PageTitle>Вход</PageTitle>
@@ -16,12 +17,12 @@
 
         <div class="element">
             <label>Логин</label>
-            <input class="auth-input" type="text" @bind-value="credentials.Login" />
+            <InputText class="auth-input" @bind-Value="credentials.Login" />
         </div>
 
         <div class="element">
             <label>Пароль</label>
-            <input class="auth-input" type="password" @bind-value="credentials.Password" />
+            <InputText class="auth-input" type="password" @bind-Value="credentials.Password" />
         </div>
 
         <div class="element">
@@ -42,6 +43,22 @@
 
     async Task ClickAuthButton()
     {
-        await authService.Authenticate(credentials);
+        if(!string.IsNullOrEmpty(await cookieService.GetValue("access_token")))
+        {
+            await cookieService.DeleteCookie("access_token");
+            await cookieService.DeleteCookie("refresh_token");
+        }
+        try
+        {
+            var tokens = await authService.Authenticate(credentials);
+            await cookieService.SetValue("access_token", tokens.AccessToken);
+            await cookieService.SetValue("refresh_token", tokens.RefreshToken);
+
+            NavigationManager.NavigateTo("/feed");
+        }
+        catch (HttpRequestException)
+        {
+            failureMessage = "Неверный логин или пароль";
+        }
     }
 }

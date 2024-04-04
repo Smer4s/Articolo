@@ -40,4 +40,12 @@ public class AdminController(IMediator mediator) : ControllerBase
 
         return Ok(moders);
     }
+
+    [HttpGet("users")]
+    public async Task<IActionResult> GetUsers()
+    {
+        var users = await mediator.Send(new GetUsersQuery());
+
+        return Ok(users);
+    }
 }

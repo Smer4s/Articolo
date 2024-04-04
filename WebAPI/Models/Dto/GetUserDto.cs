@@ -1,9 +1,8 @@
-﻿using Domain.Enums;
-
-namespace WebAPI.Models.Dto;
+﻿namespace WebAPI.Models.Dto;
 
 public record GetUserDto
 {
+	public int Id { get; init; }
 	public string? Login { get; init; }
 	public string? UserName { get; init; }
 	public string Role { get; init; } = null!;

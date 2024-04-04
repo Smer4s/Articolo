@@ -77,7 +77,8 @@ public static class DependencyInjection
             cfg.CreateMap<User, GetUserDto>()
             .ForMember(p => p.Role, opt => opt.MapFrom(x => x.Role.ToString()));
             cfg.CreateMap<Publication, GetPublicationDto>()
-            .ForMember(p => p.Status, opt => opt.MapFrom(x => x.Status.ToString()));
+            .ForMember(p => p.Status, opt => opt.MapFrom(x => x.Status.ToString()))
+            .ForMember(p => p.FavouritesCount, opt => opt.MapFrom(x => x.Favourites == null ? 0 : x.Favourites.Count));
             cfg.CreateMap<Comment, CommentDto>();
             cfg.CreateMap<PublicationReaction, PublicationReactionDto>();
             cfg.CreateMap<Theme, ThemeDto>();
