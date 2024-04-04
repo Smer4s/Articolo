@@ -1,4 +1,4 @@
-﻿using Domain.Models;
+﻿using Domain.Models.User;
 using Domain.Services;
 using MediatR;
 using WebAPI.Models.Commands.Auth;
@@ -12,7 +12,7 @@ namespace WebAPI.Handlers.Commands.Auth
             return authService.RefreshToken(new ApiTokenModel()
             {
                 AccessToken = request.AccessToken,
-                RefreshToken = request.RefreshToken,
+                RefreshToken = request.RefreshToken
             });
         }
     }

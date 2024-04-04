@@ -4,6 +4,7 @@ using Domain.Enums;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(PostgreDbContext))]
-    partial class PostgreDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240403115041_UpdateUser")]
+    partial class UpdateUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -103,7 +106,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("IssuerId");
 
-                    b.ToTable("Publications", "public");
+                    b.ToTable("Publication", "public");
                 });
 
             modelBuilder.Entity("Domain.Entities.Reactions.Reaction", b =>

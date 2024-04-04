@@ -4,11 +4,15 @@ using Domain.Enums;
 namespace Domain.Entities;
 public class User : BaseEntity
 {
-    public string UserName { get; set; } = null!;
-    public string Password { get; set; } = null!;
+	public string? UserName { get; set; }
+	public string Password { get; set; } = null!;
     public string Login { get; set; } = null!; 
-    public Role Role { get; set; }
-    public string? RefreshToken { get; set; }
+    public DateTime? BirthDay { get; set; }
+    public string? Email { get; set; }
+    public string? Description { get; set; }
+    public bool? Gender { get; set; }
+	public Role Role { get; set; }
+	public string? RefreshToken { get; set; }
     public virtual IList<Publication>? Publications { get; set; }
     public virtual IList<Publication>? Favorites { get; set; }
     public virtual IList<Comment>? Comments { get; set; }

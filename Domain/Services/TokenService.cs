@@ -1,6 +1,6 @@
 ﻿using Domain.Configurations;
 using Domain.Entities;
-using Domain.Models;
+using Domain.Models.User;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;

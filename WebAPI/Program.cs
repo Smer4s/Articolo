@@ -30,8 +30,6 @@ public class Program
 		builder.Services.ConfigureAutoMapper();
 		builder.Services.ConfigureAuthorization(builder.Configuration);
 
-		
-
 		var app = builder.Build();
 
 		if (!app.Environment.IsDevelopment())

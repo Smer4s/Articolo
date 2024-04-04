@@ -1,4 +1,4 @@
-﻿namespace Domain.Models;
+﻿namespace Domain.Models.User;
 public record LoginModel
 {
     public string Login { get; init; } = null!;

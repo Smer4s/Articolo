@@ -1,39 +1,7 @@
-﻿using Ardalis.GuardClauses;
-using Domain.Entities;
+﻿using Domain.Entities;
 using Domain.Repositories;
-using Microsoft.EntityFrameworkCore;
 
-namespace Infrastructure.Repositories
-{
-    public class UserRepository(PostgreDbContext dbContext) : IUserRepository
-    {
-        public async Task<int> Create(User user)
-        {
-            dbContext.Users.Add(user);
+namespace Infrastructure.Repositories;
 
-            await dbContext.SaveChangesAsync();
-
-            return user.Id;
-        }
-
-        public async Task Delete(int id)
-        {
-            var user = dbContext.Users.Find(id);
-
-            if (user is not null)
-            {
-                dbContext.Users.Remove(user);
-
-                await dbContext.SaveChangesAsync();
-            }
-        }
-
-        public async Task<User?> Find(Func<User, bool> predicate) =>
-            await Task.FromResult(dbContext.Users.Where(predicate).FirstOrDefault());
-
-        public async Task<User?> Get(int id) =>
-            await dbContext.Users.FindAsync(id);
-
-        public Task SaveChanges() => dbContext.SaveChangesAsync();
-    }
-}
+public class UserRepository(PostgreDbContext dbContext) : Repository<User>(dbContext), IUserRepository
+{ }

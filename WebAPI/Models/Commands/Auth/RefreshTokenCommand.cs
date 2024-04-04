@@ -1,4 +1,4 @@
-﻿using Domain.Models;
+﻿using Domain.Models.User;
 using MediatR;
 
 namespace WebAPI.Models.Commands.Auth

@@ -14,6 +14,7 @@ namespace Infrastructure
         public DbSet<User> Users { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Comment> Comments { get; set; }
+        public DbSet<Publication> Publications { get; set; }
         public DbSet<PublicationReaction> PublicationReactions { get; set; }
         public DbSet<CommentReaction> CommentReactions { get; set; }
         public DbSet<Theme> Themes { get; set; }

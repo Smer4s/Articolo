@@ -1,34 +1,40 @@
 ﻿using Ardalis.GuardClauses;
-using Domain.Models;
+using Domain.Models.User;
 using Domain.Repositories;
 
 namespace Domain.Services
 {
-    public class AuthService(UserService users, TokenService tokenService)
-    {
-        public async Task<ApiTokenModel> GetToken(LoginModel loginModel)
-        {
-            var user = await users.Find(u => u.Login == loginModel.Login && u.Password == loginModel.Password);
+    public class AuthService(HashService hash, UserService users, TokenService tokenService)
+	{
+		public async Task<ApiTokenModel> GetToken(LoginModel loginModel)
+		{
+			var user = await users.Find(user => user.Login == loginModel.Login && user.Password == hash.HashPassword(loginModel.Password));
 
-           return tokenService.GenerateTokens(user);
-        }
+			var tokens = tokenService.GenerateTokens(user);
 
-        public async Task<ApiTokenModel> RefreshToken(ApiTokenModel apiToken)
-        {
-            return await Task.FromResult(new ApiTokenModel()
-            {
-                AccessToken = "new" + apiToken.AccessToken,
-                RefreshToken = "new" + apiToken.RefreshToken,
-            });
-        }
+			user.RefreshToken = tokens.RefreshToken;
 
-        public async Task Logout(int id)
-        {
-            var user = await users.Get(id);
+			await users.Update(user);
 
-            user.RefreshToken = null;
+			return tokens;
+		}
 
-            await users.Update(user);
-        }
-    }
+		public async Task<ApiTokenModel> RefreshToken(ApiTokenModel apiToken)
+		{
+			return await Task.FromResult(new ApiTokenModel()
+			{
+				AccessToken = "new" + apiToken.AccessToken,
+				RefreshToken = "new" + apiToken.RefreshToken,
+			});
+		}
+
+		public async Task Logout(int id)
+		{
+			var user = await users.Get(id);
+
+			user.RefreshToken = null;
+
+			await users.Update(user);
+		}
+	}
 }
