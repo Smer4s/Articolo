@@ -28,4 +28,19 @@ public class AuthenthicationService(IIdentityProviderHttpClient httpClient, IOpt
 
         return JsonConvert.DeserializeObject<ApiTokenModel>(tokenString) ?? throw new JsonSerializationException();
     }
+
+	public async Task RegisterUser(AuthCredentials credentials)
+	{
+		using var request = new HttpRequestMessage(HttpMethod.Post, _api.UserUrl);
+
+		var values = new Dictionary<string, string>()
+		{
+			{"login", credentials.Login },
+			{"password", credentials.Password },
+		};
+
+		request.Content = new StringContent(values.ToJson(), null, "application/json");
+
+		var response = await httpClient.SendAsync(request, CancellationToken.None);
+	}
 }

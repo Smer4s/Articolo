@@ -1,31 +1,46 @@
 ﻿@page "/reg"
+@using Client.Models.Auth
+@using Client.Services.Abstractions
+@inject IAuthenticationService AuthService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
 
 <PageTitle>Регистрация</PageTitle>
 
 <div class="auth-container">
-    <div class="auth-box">
-        <h2 class="element">Регистрация</h2>
+	<div class="auth-box">
+		<h2 class="element">Регистрация</h2>
 
-        <div class="element">
-            <label for="username">Логин</label>
-            <input class="auth-input" type="text" id="username" name="username" />
-        </div>
+		<div class="element">
+			<label for="username">Логин</label>
+			<InputText class="auth-input" type="text" id="username" @bind-Value="credentials.Login" />
+		</div>
 
-        <div class="element">
-            <label for="password">Пароль</label>
-            <input class="auth-input" type="password" id="password" name="password" />
-        </div>
+		<div class="element">
+			<label for="password">Пароль</label>
+			<InputText class="auth-input" type="password" id="password" @bind-Value="credentials.Password" />
+		</div>
 
-        <div class="element">
-            <label for="password">Повторите пароль</label>
-            <input class="auth-input" type="password" id="confirm-password" name="confirm-password" />
-        </div>
+		<div class="element">
+			<label for="password">Повторите пароль</label>
+			<input class="auth-input" type="password" id="confirm-password" />
+		</div>
 
-        <button class="auth-btn element">Регистрация</button>
+		<button class="auth-btn element" @onclick="Register">Регистрация</button>
 
-        <div class="text-black">
-            Уже есть аккаунт?
-            <a href="/auth">Вход</a>
-        </div>
-    </div>
+		<div class="text-black">
+			Уже есть аккаунт?
+			<a href="/auth">Вход</a>
+		</div>
+	</div>
 </div>
+
+@code {
+	AuthCredentials credentials = new();
+
+	async Task Register()
+	{
+		await AuthService.RegisterUser(credentials);
+		NavigationManager.NavigateTo("/auth");
+	}
+}

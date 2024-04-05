@@ -51,7 +51,7 @@ public class Program
 			endpoints.MapControllers();
 		});
 
-		app.UseHttpsRedirection();
+//		app.UseHttpsRedirection();
 
 		app.MapGet("/", (HttpResponse httpresponse) => httpresponse.Redirect("/swagger/index.html"))
 			.ExcludeFromDescription();

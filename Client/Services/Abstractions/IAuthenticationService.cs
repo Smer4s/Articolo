@@ -5,4 +5,5 @@ namespace Client.Services.Abstractions;
 public interface IAuthenticationService
 {
     Task<ApiTokenModel> Authenticate(AuthCredentials credentials);
+    Task RegisterUser(AuthCredentials credentials);
 }
