@@ -1,0 +1,28 @@
+﻿@page "/publication-create"
+@using Client.Models.Publication
+@using Client.Services.Abstractions
+@inject IPublicationService PublicationService 
+@rendermode InteractiveServer
+
+<PageTitle>Создание публикации</PageTitle>
+
+<div class="horizontal-boxes">
+    <p>
+        Введите название:
+        <InputText @bind-Value=publication.Title />
+    </p>
+    <p>
+        Введите содержание:
+        <InputText @bind-Value=publication.XmlDocumentUrl />
+    </p>
+    <button @onclick="PostPublication">Отправить на модерацию</button>
+</div>
+
+@code {
+    Publication publication = new();
+
+    async Task PostPublication()
+    {
+        await PublicationService.CreatePublication(publication);
+    }
+}

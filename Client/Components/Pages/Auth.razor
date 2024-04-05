@@ -1,0 +1,64 @@
+﻿@page "/auth"
+
+@using Client.Models.Auth
+@using Client.Services.Abstractions;
+@rendermode InteractiveServer
+
+@inject NavigationManager NavigationManager
+@inject IAuthenticationService authService
+@inject ICookie cookieService
+
+
+<PageTitle>Вход</PageTitle>
+
+<div class="auth-container">
+    <div class="auth-box">
+        <h1 class="element">Вход</h1>
+
+        <div class="element">
+            <label>Логин</label>
+            <InputText class="auth-input" @bind-Value="credentials.Login" />
+        </div>
+
+        <div class="element">
+            <label>Пароль</label>
+            <InputText class="auth-input" type="password" @bind-Value="credentials.Password" />
+        </div>
+
+        <div class="element">
+            <button class="auth-btn" @onclick="ClickAuthButton">Войти</button>
+            <label style="color:red">@failureMessage</label>
+        </div>
+
+        <div class="text-black">
+            Первый раз у нас?
+            <a href="/reg">Регистрация</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    AuthCredentials credentials = new();
+    string failureMessage = "";
+
+    async Task ClickAuthButton()
+    {
+        if(!string.IsNullOrEmpty(await cookieService.GetValue("access_token")))
+        {
+            await cookieService.DeleteCookie("access_token");
+            await cookieService.DeleteCookie("refresh_token");
+        }
+        try
+        {
+            var tokens = await authService.Authenticate(credentials);
+            await cookieService.SetValue("access_token", tokens.AccessToken);
+            await cookieService.SetValue("refresh_token", tokens.RefreshToken);
+
+            NavigationManager.NavigateTo("/feed");
+        }
+        catch (HttpRequestException)
+        {
+            failureMessage = "Неверный логин или пароль";
+        }
+    }
+}

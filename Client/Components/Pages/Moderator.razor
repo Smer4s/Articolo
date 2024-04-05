@@ -1,0 +1,86 @@
+﻿@page "/moder"
+
+@using Client.Models.Publication
+@using Client.Services.Abstractions
+@inject IModeratorService ModeratorService
+@rendermode InteractiveServer
+
+<PageTitle>Модератор</PageTitle>
+
+<div class="horizontal-boxes">
+    @if (Publications is null)
+    {
+        <p><em>@message</em></p>
+    }
+    else
+    {
+        foreach (var publication in Publications)
+        {
+            <div class="article-box">
+                <div class="article-title">
+                    @publication.Title
+                </div>
+                <div class="article-content">
+                    @publication.XmlDocumentUrl
+                </div>
+                <button @onclick="(()=>ApprovePublication(publication.Id))">
+                    Опубликовать
+                </button>
+                <button @onclick="(()=>DeclinePublication(publication.Id))">
+                    Отклонить
+                </button>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    Publication[]? Publications;
+    string? message;
+
+    async Task DeclinePublication(int id)
+    {
+        try
+        {
+            await ModeratorService.DeclinePublication(id);
+        }
+        catch (HttpRequestException)
+        {
+        }
+        finally
+        {
+            Publications = await ModeratorService.GetPublications();
+        }
+    }
+
+    async Task ApprovePublication(int id)
+    {
+        try
+        {
+            await ModeratorService.ApprovePublication(id);
+        }
+        catch (HttpRequestException)
+        {
+        }
+        finally
+        {
+            Publications = await ModeratorService.GetPublications();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        message = "Загрузка...";
+        try
+        {
+            Publications = await ModeratorService.GetPublications();
+        }
+        catch (HttpRequestException e)
+        {
+            if (e.StatusCode is System.Net.HttpStatusCode.Forbidden or System.Net.HttpStatusCode.Unauthorized)
+            {
+                message = "У вас недостаточно прав для посещения этого ресурса";
+            }
+        }
+    }
+}

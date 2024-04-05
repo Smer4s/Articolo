@@ -1,0 +1,138 @@
+﻿@page "/admin"
+
+@using Client.Models
+@using Client.Services.Abstractions
+@inject IAdminService AdminService
+@rendermode InteractiveServer
+
+<PageTitle>Администратор</PageTitle>
+
+<div class="horizontal-boxes">
+    <div>
+        @if (Moders is null)
+        {
+            <p><em>@message</em></p>
+        }
+        else
+        {
+            <p>Модераторы:</p>
+            foreach (var moder in Moders)
+            {
+                <div class="article-box">
+                    <div class="article-title">
+                        @moder.Login
+                    </div>
+                    <div class="article-content">
+                        @moder.UserName
+                    </div>
+                    <div class="article-content">
+                        @moder.BirthDay
+                    </div>
+                    <div class="article-content">
+                        @moder.Gender
+                    </div>
+                    <div class="article-content">
+                        @moder.Email
+                    </div>
+                    <div class="article-content">
+                        @moder.Description
+                    </div>
+                    <button @onclick="(()=>RemoveModerator(moder.Id))">
+                        Убрать роль модератора
+                    </button>
+                </div>
+            }
+        }
+    </div>
+    <div>
+        @if (Users is null)
+        {
+            <p><em>@message</em></p>
+        }
+        else
+        {
+            <p>Пользователи:</p>
+            foreach (var user in Users)
+            {
+                <div class="article-box">
+                    <div class="article-title">
+                        @user.Login
+                    </div>
+                    <div class="article-content">
+                        @user.UserName
+                    </div>
+                    <div class="article-content">
+                        @user.BirthDay
+                    </div>
+                    <div class="article-content">
+                        @user.Gender
+                    </div>
+                    <div class="article-content">
+                        @user.Email
+                    </div>
+                    <div class="article-content">
+                        @user.Description
+                    </div>
+                    <button @onclick="(()=>AddModerator(user.Id))">
+                        Назначить модератором
+                    </button>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    User[]? Moders;
+    User[]? Users;
+    string? message;
+
+    async Task RemoveModerator(int id)
+    {
+        try
+        {
+            await AdminService.RemoveModerator(id);
+        }
+        catch (HttpRequestException)
+        {
+        }
+        finally
+        {
+            Moders = await AdminService.GetModerators();
+            Users = await AdminService.GetUsers();
+        }
+    }
+
+    async Task AddModerator(int id)
+    {
+        try
+        {
+            await AdminService.AddModerator(id);
+        }
+        catch (HttpRequestException)
+        {
+        }
+        finally
+        {
+            Moders = await AdminService.GetModerators();
+            Users = await AdminService.GetUsers();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        message = "Загрузка...";
+        try
+        {
+            Moders = await AdminService.GetModerators();
+            Users = await AdminService.GetUsers();
+        }
+        catch (HttpRequestException e)
+        {
+            if (e.StatusCode is System.Net.HttpStatusCode.Forbidden or System.Net.HttpStatusCode.Unauthorized)
+            {
+                message = "У вас недостаточно прав для посещения этого ресурса";
+            }
+        }
+    }
+}

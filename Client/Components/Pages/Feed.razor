@@ -1,0 +1,91 @@
+﻿@page "/feed"
+@using System.Security.Claims
+@using Client.Models.Publication
+@using Microsoft.AspNetCore.Components.Authorization
+@using Client.Services.Abstractions
+@inject IPublicationService publicationService
+@rendermode InteractiveServer
+
+<PageTitle>Лента</PageTitle>
+
+<div class="pages-layout">
+    <div class="top-boxes">
+        <div class="feed-filters-box">
+            <div class="filters-title">Моя лента</div>
+        </div>
+        <div class="feed-leaderboard-box">
+            <div class="leaderboard-title">Лучшие статьи</div>
+            @if (Publications is null)
+            {
+                <p><em>Загрузка...</em></p>
+            }
+            else
+            {
+
+                @foreach (var publication in Publications.OrderBy(x => x.Rating))
+                {
+                    <div class="leaderboard-content">
+                        @publication.Title
+
+                        @publication.XmlDocumentUrl
+
+                        favourites: @publication.FavouritesCount
+                    </div>
+                }
+
+            }
+        </div>
+    </div>
+    <div class="horizontal-boxes">
+        @if (Publications is null)
+        {
+            <p><em>Загрузка...</em></p>
+        }
+        else
+        {
+            foreach (var publication in Publications)
+            {
+                <div class="article-box">
+                    <div class="article-title">
+                        @publication.Title
+                    </div>
+                    <div class="article-content">
+                        @publication.XmlDocumentUrl
+                    </div>
+                    <p>
+                        favourites: @publication.FavouritesCount
+                    </p>
+                    <button @onclick="(() => AddToFavorites(publication.Id))">
+                        AddToFavorites
+                    </button>
+                    <label style="color:red">@failureMessage</label>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    Publication[]? Publications;
+    string? failureMessage;
+
+    async Task AddToFavorites(int id)
+    {
+        try
+        {
+            await publicationService.AddPublicationToFavorites(id);
+
+            Publications!.First(x => x.Id == id).FavouritesCount++;
+        }
+        catch (HttpRequestException e)
+        {
+            if (e.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                failureMessage = "Вы не авторизованы";
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Publications = await publicationService.GetPublications();
+    }
+}
