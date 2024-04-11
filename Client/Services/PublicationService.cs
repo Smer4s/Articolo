@@ -24,7 +24,7 @@ public class PublicationService(IIdentityProviderHttpClient httpClient, IOptions
         var values = new Dictionary<string, object>()
         {
             { "title", publication.Title },
-            { "xmlDocument", publication.XmlDocumentUrl },
+            { "xmlDocument", publication.Content },
             { "themeIds", new int[]{ 0 } }
         };
 
