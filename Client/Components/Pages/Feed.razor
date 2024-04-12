@@ -54,7 +54,7 @@
               @publication.Content
             </span>
             <span>
-              Опубликовано: @((DateTime.Now - publication.Created).ToTimeString()) 
+              Опубликовано: @(publication.Created.ToTimeIntervalString()) 
             </span>
             <p>
               favourites: @publication.FavouritesCount
@@ -128,7 +128,7 @@
           Rating = 5f,
           Title = "Title 3aidi92j1kdl21",
           Content = "Content 4",
-          Created = DateTime.Parse("11.04.2024 19:00")
+          Created = DateTime.Parse("11.04.2023 19:00")
         },
       new Publication()
         {
@@ -137,7 +137,7 @@
           Rating = 4.2f,
           Title = "Title2adijio2jdkla2jd2jlk 4",
           Content = "Content 5",
-          Created = DateTime.Parse("9.04.2024 9:00")
+          Created = DateTime.Parse("12.04.2024 15:56")
         },
       new Publication()
         {
