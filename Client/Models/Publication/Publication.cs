@@ -6,7 +6,7 @@ public class Publication
     public User Issuer { get; set; } = null!;
     public string Title { get; set; } = null!;
     public string Status { get; set; } = null!;
-    public string Content { get; set; } = null!;
+    public string XmlDocumentUrl { get; set; } = null!;
 
     public IList<Theme> Themes { get; set; } = null!;
 

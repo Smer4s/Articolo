@@ -24,7 +24,7 @@ public class PublicationService(IIdentityProviderHttpClient httpClient, IOptions
         var values = new Dictionary<string, object>()
         {
             { "title", publication.Title },
-            { "xmlDocument", publication.Content },
+            { "xmlDocument", publication.XmlDocumentUrl },
             { "themeIds", new int[]{ 0 } }
         };
 
@@ -36,6 +36,17 @@ public class PublicationService(IIdentityProviderHttpClient httpClient, IOptions
     public Task DeletePublication(int publicationId)
     {
         throw new NotImplementedException();
+    }
+
+    public async Task<Publication?> GetPublication(int id)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, Path.Combine(_api.PublicationUrl, id.ToString()));
+
+        var response = await httpClient.SendAsync(request, CancellationToken.None);
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        return JsonConvert.DeserializeObject<Publication>(content) ?? throw new JsonSerializationException();
     }
 
     public async Task<Publication[]> GetPublications()
