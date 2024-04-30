@@ -1,8 +1,10 @@
 ﻿@page "/auth"
 
+@using Client.Components.Layout
 @using Client.Models.Auth
 @using Client.Services.Abstractions;
 @rendermode InteractiveServer
+@layout AuthLayout
 
 @inject NavigationManager NavigationManager
 @inject IAuthenticationService authService

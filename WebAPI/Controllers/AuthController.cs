@@ -1,9 +1,9 @@
 ﻿using Ardalis.GuardClauses;
+using Domain.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using WebAPI.Extensions;
 using WebAPI.Models.Commands.Auth;
 
 namespace WebAPI.Controllers;

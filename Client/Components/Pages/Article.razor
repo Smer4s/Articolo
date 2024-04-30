@@ -1,0 +1,73 @@
+﻿@page "/article/{Id:int}"
+@using Client.Extensions
+@using Client.Models.Publication
+@using Client.Services.Abstractions
+@inject IPublicationService publicationService
+@inject NavigationManager nav
+@rendermode RenderMode.InteractiveServer
+
+<PageTitle>@(Publication is not null ? Publication.Title : string.Empty)</PageTitle>
+
+<div class="pages-layout">
+  <div class="article-box">
+    @if (Publication is null)
+    {
+      <p><em>Загрузка...</em></p>
+    }
+    else
+    {
+
+      <div class="article">
+        <div>
+          <span>
+            @if (Publication.Issuer is not null)
+              @Publication.Issuer.UserName
+          </span>
+          <span>
+            Опубликовано: @(Publication.Created.ToTimeIntervalString())
+          </span>
+        </div>
+        <span class="article-title">
+          @Publication.Title
+        </span>
+        <div>
+          <span>
+            @if (Publication.Reactions is not null)
+            {
+              <span>likes:  @Publication.Reactions.GetLikes() </span>
+              <span>dislikes: @Publication.Reactions.GetDisLikes() </span>
+            }
+          </span>
+          <span>
+            @if (Publication.Comments is not null)
+            {
+              <span>comments: @Publication.Comments.Count </span>
+            }
+          </span>
+        </div>
+        <div>
+          @if (Publication.Themes is not null)
+            @foreach (var theme in Publication.Themes)
+            {
+              <span>@theme.Title* </span>
+            }
+        </div>
+        <div class="article-content">
+          @Publication.XmlDocumentUrl
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+@code {
+  [Parameter]
+  public int Id { get; set; }
+
+  Publication? Publication { get; set; }
+
+  protected override async Task OnInitializedAsync()
+  {
+    Publication = await publicationService.GetPublication(Id);
+  }
+}

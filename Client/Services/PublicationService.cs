@@ -38,6 +38,17 @@ public class PublicationService(IIdentityProviderHttpClient httpClient, IOptions
         throw new NotImplementedException();
     }
 
+    public async Task<Publication?> GetPublication(int id)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, Path.Combine(_api.PublicationUrl, id.ToString()));
+
+        var response = await httpClient.SendAsync(request, CancellationToken.None);
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        return JsonConvert.DeserializeObject<Publication>(content) ?? throw new JsonSerializationException();
+    }
+
     public async Task<Publication[]> GetPublications()
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, _api.PublicationUrl);

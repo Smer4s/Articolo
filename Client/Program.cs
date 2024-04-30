@@ -27,7 +27,7 @@ namespace Client
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode();
 
-            app.MapGet("/", (HttpResponse httpresponse) => httpresponse.Redirect("/publication-create"));
+            app.MapGet("/", (HttpResponse httpresponse) => httpresponse.Redirect("/feed"));
 
             app.Run();
         }
