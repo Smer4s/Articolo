@@ -1,9 +1,9 @@
-﻿using Domain.Models.User;
+﻿using Domain.Extensions;
+using Domain.Models.User;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq.Expressions;
-using WebAPI.Extensions;
 using WebAPI.Handlers.Commands.User;
 using WebAPI.Models.Commands.User;
 using WebAPI.Models.Queries.User;

@@ -1,4 +1,5 @@
 ﻿using Ardalis.GuardClauses;
+using Domain.Exceptions;
 using Newtonsoft.Json;
 using WebAPI.Middleware.Responses;
 
@@ -20,6 +21,10 @@ namespace WebAPI.Middleware
             try
             {
                 await _next(httpContext);
+            }
+            catch (RefreshTokenException ex)
+            {
+                await HandleExceptionAsync(httpContext, ex);
             }
             catch (NotFoundException ex)
             {
@@ -70,6 +75,15 @@ namespace WebAPI.Middleware
                         ExceptionMessage = exception.Message,
                         Message = "Entity was not found",
                         StatusCode = statusCode
+                    };
+                    break;
+                case RefreshTokenException:
+                    statusCode = 403;
+                    response = new ExceptionResponse
+                    {
+                        Message = "Invalid refresh token",
+                        ExceptionMessage = exception.Message,
+                        StatusCode = statusCode,
                     };
                     break;
                 default:

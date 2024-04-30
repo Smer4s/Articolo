@@ -102,6 +102,24 @@ a, .btn-link {
         white-space: nowrap;
         text-overflow: ellipsis;
     }
+    
+.account {
+    margin-right: 23.3vw;
+    padding: 0 1%;
+    width: 9.85%;
+    display: grid;
+    grid-template-columns: 75% 20%;
+    gap:5%;
+}
+
+.account-username {
+    color: #3D3D3D;
+    font-size: medium;
+    font-weight: bold;
+    display:flex;
+    justify-content:flex-start;
+    align-self:center;
+}
 
 .auth-container {
     padding: 4%;

@@ -1,9 +1,9 @@
-﻿using Domain.Models.Publication;
+﻿using Domain.Extensions;
+using Domain.Models.Publication;
 using Infrastructure.Migrations;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebAPI.Extensions;
 using WebAPI.Models.Commands.Publication;
 using WebAPI.Models.Queries.Publication;
 

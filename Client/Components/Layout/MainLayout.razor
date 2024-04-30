@@ -1,21 +1,18 @@
 ﻿@inherits LayoutComponentBase
 
 <div class="page">
-    <main>
-        <PageTitle>Articolo - </PageTitle>
-        <div class="top-row px-4">
-            <a class="app-title" href="/feed">Articolo</a>
-        </div>
+  <main>
+    <PageTitle>Articolo - </PageTitle>
+    <div class="top-row px-4">
+      <a class="app-title" href="/feed">Articolo</a>
+      <div class="account">
+        <span class="account-username">username</span>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Red_Apple.jpg/1200px-Red_Apple.jpg" style="border-radius:50%; width:100%"/>
+      </div>
+    </div>
 
-        <article>
-            @Body
-        </article>
-       
-    </main>
-</div>
-
-<div id="blazor-error-ui">
-    An unhandled error has occurred.
-    <a href="" class="reload">Reload</a>
-    <a class="dismiss">🗙</a>
+    <article>
+      @Body
+    </article>
+  </main>
 </div>

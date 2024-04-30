@@ -1,9 +1,11 @@
 ﻿@page "/reg"
+@using Client.Components.Layout
 @using Client.Models.Auth
 @using Client.Services.Abstractions
 @inject IAuthenticationService AuthService
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
+@layout AuthLayout
 
 <PageTitle>Регистрация</PageTitle>
 
