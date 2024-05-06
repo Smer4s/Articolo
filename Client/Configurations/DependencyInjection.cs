@@ -16,6 +16,7 @@ public static class DependencyInjection
         services.AddTransient<IPublicationService, PublicationService>();
         services.AddTransient<IModeratorService, ModeratorService>();
         services.AddTransient<IAdminService, AdminService>();
+        services.AddTransient<IUserService, UserService>();
         services.AddHttpContextAccessor();
         services.AddHttpClient();
         services.Configure<ApiOptions>(configuration.GetSection(ApiOptions.Section));

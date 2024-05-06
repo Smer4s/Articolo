@@ -1,0 +1,72 @@
+﻿@using Client.Models
+@using Client.Services.Abstractions
+@rendermode InteractiveServer
+
+<button class="account" @onclick="ToggleMenu">
+  @if (User is null)
+  {
+    <a class="account-username" href="/auth">Войти</a>
+  }
+  else
+  {
+    <span class="account-username" @ref="usernameElement">@(User.UserName ?? User.Login)</span>
+    <img src="https://i.ytimg.com/vi/8V6qj4Xkrsc/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLCMrn97AJNjaj9BKvAIx71FvUbBrg" style="border-radius:50%; width:100%; height:100%" />
+    @if (showMenu)
+    {
+      <div class="account-menu">
+        <button @onclick="GoToPublications">Публикации</button>
+        <button @onclick="GoToBookmarks">Закладки</button>
+        <button @onclick="Logout">Выйти</button>
+      </div>
+    }
+  }
+</button>
+
+@code{
+  [Inject]
+  public required ICookie cookieService { get; set; }
+
+  [Inject]
+  public required IUserService userService { get; set; }
+
+  private User? User { get; set; }
+  private bool showMenu = false;
+  ElementReference usernameElement;
+
+  protected override async Task OnInitializedAsync()
+  {
+    try
+    {
+      User = await userService.GetUser();
+    }
+    catch (HttpRequestException e)
+    {
+      if (e.StatusCode is not System.Net.HttpStatusCode.Unauthorized) throw;
+    }
+  }
+
+  public void ToggleMenu()
+  {
+    showMenu = !showMenu;
+    Console.WriteLine(showMenu);
+    StateHasChanged();
+  }
+
+  private void GoToPublications()
+  {
+    // Обработка нажатия на кнопку "Публикации"
+    // Например, перейти на соответствующую страницу
+  }
+
+  private void GoToBookmarks()
+  {
+    // Обработка нажатия на кнопку "Закладки"
+    // Например, перейти на страницу с закладками
+  }
+
+  private void Logout()
+  {
+    // Обработка нажатия на кнопку "Выйти"
+    // Например, провести выход пользователя из системы
+  }
+}
