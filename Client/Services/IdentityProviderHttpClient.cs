@@ -12,78 +12,78 @@ using System.Text;
 
 namespace Client.Services;
 
-public class IdentityProviderHttpClient : IIdentityProviderHttpClient
+public class IdentityProviderHttpClient(
+	IHttpContextAccessor httpContextAccessor,
+	IHttpClientFactory httpClientFactory,
+	IOptions<ApiOptions> options) : IIdentityProviderHttpClient
 {
-    private readonly HttpClient _httpClient;
-    private string? accessToken;
-    private string? refreshToken;
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly API _api;
+	private readonly HttpClient _httpClient = httpClientFactory.CreateClient();
+	private string? accessToken;
+	private string? refreshToken;
+	private readonly API _api = new API(options);
 
-    public IdentityProviderHttpClient(
-        IHttpContextAccessor httpContextAccessor,
-        IHttpClientFactory httpClientFactory,
-        IOptions<ApiOptions> options)
-    {
-        _httpContextAccessor = httpContextAccessor;
-        _httpClient = httpClientFactory.CreateClient();
-        _api = new API(options);
-    }
+	public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+	{
+		AddAuthorizationHeader(request);
 
-    public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-    {
-        AddAuthorizationHeader(request);
+		var response = await _httpClient.SendAsync(request, cancellationToken);
 
-        var response = await _httpClient.SendAsync(request, cancellationToken);
+		if (response.StatusCode is HttpStatusCode.Unauthorized && accessToken is not null)
+		{
+			refreshToken = httpContextAccessor.HttpContext?.Request.Cookies["refresh_token"];
+			
+			if (!string.IsNullOrEmpty(refreshToken))
+			{
+				var tokens = await RefreshTokenRequest();
 
-        if (response.StatusCode is HttpStatusCode.Unauthorized && accessToken is not null)
-        {
-            refreshToken = _httpContextAccessor.HttpContext?.Request.Cookies["refresh_token"];
+				accessToken = tokens.AccessToken;
+				refreshToken = tokens.RefreshToken;
 
-            if (!string.IsNullOrEmpty(refreshToken))
-            {
-                var tokens = await RefreshTokenRequest();
+				var requestCopy = new HttpRequestMessage(request.Method, request.RequestUri)
+				{
+					Content = request.Content is null ? null : request.Content
+				};
 
-                accessToken = tokens.AccessToken;
-                refreshToken = tokens.RefreshToken;
+				AddAuthorizationHeader(requestCopy);
 
-                AddAuthorizationHeader(request);
+				response = await _httpClient.SendAsync(requestCopy, cancellationToken);
 
-                response = await _httpClient.SendAsync(request, cancellationToken);
-            }
-        }
+				httpContextAccessor.HttpContext?.Request.Cookies.Append(new KeyValuePair<string, string>("refresh_token", refreshToken));
+				httpContextAccessor.HttpContext?.Request.Cookies.Append(new KeyValuePair<string, string>("access_token", accessToken));
+			}
+		}
 
-        response.EnsureSuccessStatusCode();
+		response.EnsureSuccessStatusCode();
 
-        return response;
-    }
+		return response;
+	}
 
-    private async Task<ApiTokenModel> RefreshTokenRequest()
-    {
-        using var request = new HttpRequestMessage(HttpMethod.Post, _api.RefreshTokenUrl);
+	private async Task<ApiTokenModel> RefreshTokenRequest()
+	{
+		using var request = new HttpRequestMessage(HttpMethod.Post, _api.RefreshTokenUrl);
 
-        var values = new Dictionary<string, string>()
-        {
-            {"access_token", accessToken! },
-            {"refresh_token", refreshToken! },
-        };
+		var values = new Dictionary<string, string>()
+		{
+			{"access_token", accessToken! },
+			{"refresh_token", refreshToken! },
+		};
 
-        request.Content = new StringContent(values.ToJson(), null, "application/json");
+		request.Content = new StringContent(values.ToJson(), null, "application/json");
 
-        var response = await _httpClient.SendAsync(request, CancellationToken.None);
+		var response = await _httpClient.SendAsync(request, CancellationToken.None);
 
-        var tokenString = await response.Content.ReadAsStringAsync();
+		var tokenString = await response.Content.ReadAsStringAsync();
 
-        return JsonConvert.DeserializeObject<ApiTokenModel>(tokenString) ?? throw new JsonSerializationException();
-    }
+		return JsonConvert.DeserializeObject<ApiTokenModel>(tokenString) ?? throw new JsonSerializationException();
+	}
 
-    private void AddAuthorizationHeader(HttpRequestMessage request)
-    {
-        accessToken = _httpContextAccessor.HttpContext?.Request.Cookies["access_token"];
+	private void AddAuthorizationHeader(HttpRequestMessage request)
+	{
+		accessToken = httpContextAccessor.HttpContext?.Request.Cookies["access_token"];
 
-        if (!string.IsNullOrEmpty(accessToken))
-        {
-            request.Headers.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, accessToken);
-        }
-    }
+		if (!string.IsNullOrEmpty(accessToken))
+		{
+			request.Headers.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, accessToken);
+		}
+	}
 }

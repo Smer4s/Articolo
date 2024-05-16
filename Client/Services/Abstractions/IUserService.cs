@@ -10,4 +10,5 @@ public interface IUserService
     Task RegisterUser(AuthCredentials credentials);
     Task UpdateUser(User user);
     Task<IEnumerable<Publication>> GetFavorites();
+	Task Logout();
 }

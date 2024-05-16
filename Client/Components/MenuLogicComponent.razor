@@ -9,13 +9,13 @@
   }
   else
   {
-    <span class="account-username" @ref="usernameElement">@(User.UserName ?? User.Login)</span>
+    <span class="account-username">@(User.UserName ?? User.Login)</span>
     <img src="https://i.ytimg.com/vi/8V6qj4Xkrsc/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLCMrn97AJNjaj9BKvAIx71FvUbBrg" style="border-radius:50%; width:100%; height:100%" />
     @if (showMenu)
     {
       <div class="account-menu">
         <button @onclick="GoToPublications">Публикации</button>
-        <button @onclick="GoToBookmarks">Закладки</button>
+        <button @onclick="GoToFavorites">Закладки</button>
         <button @onclick="Logout">Выйти</button>
       </div>
     }
@@ -23,50 +23,53 @@
 </button>
 
 @code{
-  [Inject]
-  public required ICookie cookieService { get; set; }
+	[Inject]
+	public required ICookie CookieService { get; set; }
 
-  [Inject]
-  public required IUserService userService { get; set; }
+	[Inject]
+	public required IUserService UserService { get; set; }
 
-  private User? User { get; set; }
-  private bool showMenu = false;
-  ElementReference usernameElement;
+	[Inject]
+	public required NavigationManager NavigationManager { get; set; }
 
-  protected override async Task OnInitializedAsync()
-  {
-    try
-    {
-      User = await userService.GetUser();
-    }
-    catch (HttpRequestException e)
-    {
-      if (e.StatusCode is not System.Net.HttpStatusCode.Unauthorized) throw;
-    }
-  }
+	private User? User { get; set; }
+	private bool showMenu = false;
 
-  public void ToggleMenu()
-  {
-    showMenu = !showMenu;
-    Console.WriteLine(showMenu);
-    StateHasChanged();
-  }
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			User = await UserService.GetUser();
+		}
+		catch (HttpRequestException e)
+		{
+			if (e.StatusCode is not System.Net.HttpStatusCode.Unauthorized) throw;
+		}
+	}
 
-  private void GoToPublications()
-  {
-    // Обработка нажатия на кнопку "Публикации"
-    // Например, перейти на соответствующую страницу
-  }
+	public void ToggleMenu()
+	{
+		showMenu = !showMenu;
+		StateHasChanged();
+	}
 
-  private void GoToBookmarks()
-  {
-    // Обработка нажатия на кнопку "Закладки"
-    // Например, перейти на страницу с закладками
-  }
+	private void GoToPublications()
+	{
+		NavigationManager.NavigateTo(Path.Combine(User!.Id.ToString(),"publications"));
+	}
 
-  private void Logout()
-  {
-    // Обработка нажатия на кнопку "Выйти"
-    // Например, провести выход пользователя из системы
-  }
+	private void GoToFavorites()
+	{
+		NavigationManager.NavigateTo(Path.Combine(User!.Id.ToString(), "favs"));
+	}
+
+	private async Task Logout()
+	{
+		await UserService.Logout();
+		await CookieService.DeleteCookie("access_token");
+		await CookieService.DeleteCookie("refresh_token");
+		User = null;
+		
+		StateHasChanged();
+	}
 }

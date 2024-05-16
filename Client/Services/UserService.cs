@@ -29,7 +29,12 @@ public class UserService(IIdentityProviderHttpClient httpClient, IOptions<ApiOpt
         return JsonConvert.DeserializeObject<User>(userString) ?? throw new JsonSerializationException();
     }
 
-    public Task RegisterUser(AuthCredentials credentials)
+	public Task Logout()
+	{
+		return Task.CompletedTask;
+	}
+
+	public Task RegisterUser(AuthCredentials credentials)
     {
         throw new NotImplementedException();
     }

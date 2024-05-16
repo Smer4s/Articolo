@@ -7,8 +7,7 @@
 @using Client.Services.Abstractions
 @inject IPublicationService publicationService
 @inject NavigationManager nav
-@attribute [StreamRendering]
-@rendermode RenderMode.InteractiveServer
+@rendermode InteractiveServer
 
 <PageTitle>Лента</PageTitle>
 
@@ -127,104 +126,104 @@
 
   protected override async Task OnInitializedAsync()
   {
-    try
-    {
-      Publications = await publicationService.GetPublications();
-    }
-    catch (HttpRequestException)
-    {
-      connectionLost = "Проверьте подключение к интернету";
-    }
+    // try
+    // {
+    //   Publications = await publicationService.GetPublications();
+    // }
+    // catch (HttpRequestException)
+    // {
+    //   connectionLost = "Проверьте подключение к интернету";
+    // }
 
-    // await Task.Delay(500);
-    // Publications = [
-    //   new Publication()
-    //     {
-    //       Id = 1,
-    //       Issuer = new Models.User()
-    //       {
-    //         UserName = "Username 1"
-    //       },
-    //       FavouritesCount = 10,
-    //       Comments = new Models.Comment.Comment[5],
-    //       Reactions = [
-    //                             new PublicationReaction()
-    //                             {
-    //                               Id = 1,
-    //                               ReactionType = Models.Enums.ReactionType.Like
-    //                             },
-    //         new PublicationReaction()
-    //         {
-    //           Id = 2,
-    //           ReactionType = Models.Enums.ReactionType.Dislike
-    //         },
-    //         new PublicationReaction()
-    //         {
-    //           Id = 3,
-    //           ReactionType = Models.Enums.ReactionType.Like
-    //         },
-    //         new PublicationReaction()
-    //         {
-    //           Id = 4,
-    //           ReactionType = Models.Enums.ReactionType.Like
-    //         }],
-    //       Themes = [new Theme() { Title = "theme 1" }, new Theme() { Title = "theme 2" }],
-    //       Rating = 3.4f,
-    //       Title = "Title 1awkdjkajwdkj",
-    //       XmlDocumentUrl = "XmlDocumentUrl",
-    //       Created = DateTime.Parse("11.04.2024 21:23")
-    //     },
-    //   new Publication()
-    //     {
-    //       Id = 2,
-    //       Issuer = new Models.User()
-    //       {
-    //         UserName = "Username 2"
-    //       },
-    //       FavouritesCount = 24,
-    //       Rating = 4.5f,
-    //       Title = "Titleawdkjhawjkdjaw 2",
-    //       XmlDocumentUrl = "XmlDocumentUrl 3",
-    //       Created = DateTime.Parse("10.04.2024 19:00")
-    //     },
-    //   new Publication()
-    //     {
-    //       Id = 3,
-    //       Issuer = new Models.User()
-    //       {
-    //         UserName = "Username 3"
-    //       },
-    //       FavouritesCount = 125,
-    //       Rating = 5f,
-    //       Title = "Title 3aidi92j1kdl21",
-    //       XmlDocumentUrl = "XmlDocumentUrl 4",
-    //       Created = DateTime.Parse("11.04.2023 19:00")
-    //     },
-    //   new Publication()
-    //     {
-    //       Id = 4,
-    //       Issuer = new Models.User()
-    //       {
-    //         UserName = "Username 4"
-    //       },
-    //       FavouritesCount = 165,
-    //       Rating = 4.2f,
-    //       Title = "Title2adijio2jdkla2jd2jlk 4",
-    //       XmlDocumentUrl = "XmlDocumentUrl 5",
-    //       Created = DateTime.Parse("12.04.2024 15:56")
-    //     },
-    //   new Publication()
-    //     {
-    //       Id = 5,
-    //       Issuer = new Models.User()
-    //       {
-    //         UserName = "Username 5"
-    //       },
-    //       FavouritesCount = 1625,
-    //       Rating = 4.67f,
-    //       Title = "Title2adijioawd12d2jdkla2jd2jlk 6",
-    //       XmlDocumentUrl = "XmlDocumentUrl 55125",
-    //       Created = DateTime.Parse("11.04.2024 21:52")
-    //     }];
+    await Task.Delay(500);
+    Publications = [
+      new Publication()
+        {
+          Id = 1,
+          Issuer = new Models.User()
+          {
+            UserName = "Username 1"
+          },
+          FavouritesCount = 10,
+          Comments = new Models.Comment.Comment[5],
+          Reactions = [
+                                new PublicationReaction()
+                                {
+                                  Id = 1,
+                                  ReactionType = Models.Enums.ReactionType.Like
+                                },
+            new PublicationReaction()
+            {
+              Id = 2,
+              ReactionType = Models.Enums.ReactionType.Dislike
+            },
+            new PublicationReaction()
+            {
+              Id = 3,
+              ReactionType = Models.Enums.ReactionType.Like
+            },
+            new PublicationReaction()
+            {
+              Id = 4,
+              ReactionType = Models.Enums.ReactionType.Like
+            }],
+          Themes = [new Theme() { Title = "theme 1" }, new Theme() { Title = "theme 2" }],
+          Rating = 3.4f,
+          Title = "Title 1awkdjkajwdkj",
+          XmlDocumentUrl = "XmlDocumentUrl",
+          Created = DateTime.Parse("11.04.2024 21:23")
+        },
+      new Publication()
+        {
+          Id = 2,
+          Issuer = new Models.User()
+          {
+            UserName = "Username 2"
+          },
+          FavouritesCount = 24,
+          Rating = 4.5f,
+          Title = "Titleawdkjhawjkdjaw 2",
+          XmlDocumentUrl = "XmlDocumentUrl 3",
+          Created = DateTime.Parse("10.04.2024 19:00")
+        },
+      new Publication()
+        {
+          Id = 3,
+          Issuer = new Models.User()
+          {
+            UserName = "Username 3"
+          },
+          FavouritesCount = 125,
+          Rating = 5f,
+          Title = "Title 3aidi92j1kdl21",
+          XmlDocumentUrl = "XmlDocumentUrl 4",
+          Created = DateTime.Parse("11.04.2023 19:00")
+        },
+      new Publication()
+        {
+          Id = 4,
+          Issuer = new Models.User()
+          {
+            UserName = "Username 4"
+          },
+          FavouritesCount = 165,
+          Rating = 4.2f,
+          Title = "Title2adijio2jdkla2jd2jlk 4",
+          XmlDocumentUrl = "XmlDocumentUrl 5",
+          Created = DateTime.Parse("12.04.2024 15:56")
+        },
+      new Publication()
+        {
+          Id = 5,
+          Issuer = new Models.User()
+          {
+            UserName = "Username 5"
+          },
+          FavouritesCount = 1625,
+          Rating = 4.67f,
+          Title = "Title2adijioawd12d2jdkla2jd2jlk 6",
+          XmlDocumentUrl = "XmlDocumentUrl 55125",
+          Created = DateTime.Parse("11.04.2024 21:52")
+        }];
   }
 }
