@@ -8,79 +8,83 @@
 <PageTitle>Модератор</PageTitle>
 
 <div class="horizontal-boxes">
-    @if (Publications is null)
+  @if (Publications is null)
+  {
+    <p><em>@message</em></p>
+  }
+  else
+  {
+    foreach (var publication in Publications)
     {
-        <p><em>@message</em></p>
+      <div class="article-box">
+        <div class="article-title">
+          @publication.Title
+        </div>
+        <div class="article-content">
+          @publication.XmlDocumentUrl
+        </div>
+        <button @onclick="(()=>ApprovePublication(publication.Id))">
+          Опубликовать
+        </button>
+        <button @onclick="(()=>DeclinePublication(publication.Id))">
+          Отклонить
+        </button>
+      </div>
     }
-    else
-    {
-        foreach (var publication in Publications)
-        {
-            <div class="article-box">
-                <div class="article-title">
-                    @publication.Title
-                </div>
-                <div class="article-content">
-                    @publication.XmlDocumentUrl
-                </div>
-                <button @onclick="(()=>ApprovePublication(publication.Id))">
-                    Опубликовать
-                </button>
-                <button @onclick="(()=>DeclinePublication(publication.Id))">
-                    Отклонить
-                </button>
-            </div>
-        }
-    }
+  }
 </div>
 
 @code {
-    Publication[]? Publications;
-    string? message;
+  Publication[]? Publications;
+  string? message;
 
-    async Task DeclinePublication(int id)
+  async Task DeclinePublication(int id)
+  {
+    try
     {
-        try
-        {
-            await ModeratorService.DeclinePublication(id);
-        }
-        catch (HttpRequestException)
-        {
-        }
-        finally
-        {
-            Publications = await ModeratorService.GetPublications();
-        }
+      await ModeratorService.DeclinePublication(id);
     }
+    catch (HttpRequestException)
+    {
+    }
+    finally
+    {
+      Publications = await ModeratorService.GetPublications();
+    }
+  }
 
-    async Task ApprovePublication(int id)
+  async Task ApprovePublication(int id)
+  {
+    try
     {
-        try
-        {
-            await ModeratorService.ApprovePublication(id);
-        }
-        catch (HttpRequestException)
-        {
-        }
-        finally
-        {
-            Publications = await ModeratorService.GetPublications();
-        }
+      await ModeratorService.ApprovePublication(id);
     }
+    catch (HttpRequestException)
+    {
+    }
+    finally
+    {
+      Publications = await ModeratorService.GetPublications();
+    }
+  }
 
-    protected override async Task OnInitializedAsync()
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    message = "Загрузка...";
+
+    if (!firstRender) return;
+
+    try
     {
-        message = "Загрузка...";
-        try
-        {
-            Publications = await ModeratorService.GetPublications();
-        }
-        catch (HttpRequestException e)
-        {
-            if (e.StatusCode is System.Net.HttpStatusCode.Forbidden or System.Net.HttpStatusCode.Unauthorized)
-            {
-                message = "У вас недостаточно прав для посещения этого ресурса";
-            }
-        }
+      Publications = await ModeratorService.GetPublications();
+      StateHasChanged();
     }
+    catch (HttpRequestException e)
+    {
+      if (e.StatusCode is System.Net.HttpStatusCode.Forbidden or System.Net.HttpStatusCode.Unauthorized)
+      {
+        message = "У вас недостаточно прав для посещения этого ресурса";
+      }
+    }
+  }
 }

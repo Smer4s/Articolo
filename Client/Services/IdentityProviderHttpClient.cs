@@ -13,7 +13,7 @@ using System.Text;
 namespace Client.Services;
 
 public class IdentityProviderHttpClient(
-	IHttpContextAccessor httpContextAccessor,
+	ICookie cookieService,
 	IHttpClientFactory httpClientFactory,
 	IOptions<ApiOptions> options) : IIdentityProviderHttpClient
 {
@@ -24,13 +24,13 @@ public class IdentityProviderHttpClient(
 
 	public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
 	{
-		AddAuthorizationHeader(request);
+		await AddAuthorizationHeader(request);
 
 		var response = await _httpClient.SendAsync(request, cancellationToken);
 
 		if (response.StatusCode is HttpStatusCode.Unauthorized && accessToken is not null)
 		{
-			refreshToken = httpContextAccessor.HttpContext?.Request.Cookies["refresh_token"];
+			refreshToken = await cookieService.GetValue("refresh_token");
 			
 			if (!string.IsNullOrEmpty(refreshToken))
 			{
@@ -44,12 +44,12 @@ public class IdentityProviderHttpClient(
 					Content = request.Content is null ? null : request.Content
 				};
 
-				AddAuthorizationHeader(requestCopy);
+				await cookieService.SetValue("refresh_token", refreshToken);
+				await cookieService.SetValue("access_token", accessToken);
+
+				await AddAuthorizationHeader(requestCopy);
 
 				response = await _httpClient.SendAsync(requestCopy, cancellationToken);
-
-				httpContextAccessor.HttpContext?.Request.Cookies.Append(new KeyValuePair<string, string>("refresh_token", refreshToken));
-				httpContextAccessor.HttpContext?.Request.Cookies.Append(new KeyValuePair<string, string>("access_token", accessToken));
 			}
 		}
 
@@ -64,8 +64,8 @@ public class IdentityProviderHttpClient(
 
 		var values = new Dictionary<string, string>()
 		{
-			{"access_token", accessToken! },
-			{"refresh_token", refreshToken! },
+			{"accessToken", accessToken! },
+			{"refreshToken", refreshToken! },
 		};
 
 		request.Content = new StringContent(values.ToJson(), null, "application/json");
@@ -77,9 +77,9 @@ public class IdentityProviderHttpClient(
 		return JsonConvert.DeserializeObject<ApiTokenModel>(tokenString) ?? throw new JsonSerializationException();
 	}
 
-	private void AddAuthorizationHeader(HttpRequestMessage request)
+	private async Task AddAuthorizationHeader(HttpRequestMessage request)
 	{
-		accessToken = httpContextAccessor.HttpContext?.Request.Cookies["access_token"];
+		accessToken = await cookieService.GetValue("access_token");
 
 		if (!string.IsNullOrEmpty(accessToken))
 		{

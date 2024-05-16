@@ -1,0 +1,62 @@
+version: '3.9'
+name: articolo
+  
+services:
+    api:
+       container_name: articolo-api
+       build:
+         dockerfile: WebAPI/Dockerfile
+       environment: 
+         - ASPNETCORE_URLS=http://+:5000
+       ports:
+        - 5001:5000
+       depends_on: 
+         - api-db
+       networks:
+         - backend
+      
+    pg-admin:
+        image: dpage/pgadmin4:6
+        environment:
+        - PGADMIN_DEFAULT_EMAIL=admin@email.com
+        - PGADMIN_DEFAULT_PASSWORD=admin
+        - PGADMIN_LISTEN_PORT=5050
+        ports:
+        - "5050:5050"
+        networks:
+         - backend
+
+    api-db:
+        container_name: articolo-api-db
+        image: postgres:12
+        restart: always
+        volumes:
+            - data:/var/lib/postgresql/data
+        ports:
+            - 5433:5432
+        environment:
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+            - POSTGRES_DATABASE=articolo
+        networks:
+          - backend
+          
+    client:
+        container_name: articolo-client
+        build:
+            dockerfile: Client/Dockerfile
+        environment: 
+          - ASPNETCORE_URLS=http://+:5002
+        depends_on:
+          - api
+        ports:
+         - 5003:5002
+        networks:
+         - backend
+
+volumes:
+    data:
+      
+networks:
+    backend:
+  

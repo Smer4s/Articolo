@@ -66,8 +66,13 @@
 
   Publication? Publication { get; set; }
 
-  protected override async Task OnInitializedAsync()
+  protected override async Task OnAfterRenderAsync(bool firstRender)
   {
     Publication = await publicationService.GetPublication(Id);
+
+    if (firstRender)
+      StateHasChanged();
+
+    await base.OnAfterRenderAsync(firstRender);
   }
 }

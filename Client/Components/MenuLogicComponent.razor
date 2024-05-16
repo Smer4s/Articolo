@@ -32,19 +32,22 @@
 	[Inject]
 	public required NavigationManager NavigationManager { get; set; }
 
-	private User? User { get; set; }
+	public User? User { get; private set; }
 	private bool showMenu = false;
 
-	protected override async Task OnInitializedAsync()
+	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
 		try
 		{
 			User = await UserService.GetUser();
+			if(firstRender)
+				StateHasChanged();
 		}
 		catch (HttpRequestException e)
 		{
 			if (e.StatusCode is not System.Net.HttpStatusCode.Unauthorized) throw;
 		}
+		await base.OnAfterRenderAsync(firstRender);
 	}
 
 	public void ToggleMenu()

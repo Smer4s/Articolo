@@ -1,28 +1,34 @@
 ﻿@page "/publication-create"
+@using Client.Components.Layout
+@using Client.Models
 @using Client.Models.Publication
 @using Client.Services.Abstractions
-@inject IPublicationService PublicationService 
-@rendermode InteractiveServer
+@inject IPublicationService PublicationService
+@layout MainLayout
+@inherits MenuLogicComponent
 
 <PageTitle>Создание публикации</PageTitle>
 
 <div class="horizontal-boxes">
-    <p>
-        Введите название:
-        <InputText @bind-Value=publication.Title />
-    </p>
-    <p>
-        Введите содержание:
-        <InputText @bind-Value=publication.XmlDocumentUrl />
-    </p>
-    <button @onclick="PostPublication">Отправить на модерацию</button>
+  <p>
+    Введите название:
+    <InputText @bind-Value=publication.Title />
+  </p>
+  <p>
+    Введите содержание:
+    <InputText @bind-Value=publication.XmlDocumentUrl />
+  </p>
+  <button class="auth-btn" @onclick="PostPublication">Отправить на модерацию</button>
 </div>
 
 @code {
-    Publication publication = new();
+  Publication publication = new();
 
-    async Task PostPublication()
-    {
-        await PublicationService.CreatePublication(publication);
-    }
+  async Task PostPublication()
+  {
+    publication.Created = DateTime.Now;
+    publication.Issuer = User!;
+
+    await PublicationService.CreatePublication(publication);
+  }
 }
