@@ -100,25 +100,29 @@
 							<span style="color:#558CB7">
 								@(publication.Created.ToTimeIntervalString())
 							</span>
+							@if (unathorized)
+							{
+								<label style="color:red">Вам нужно войти в аккаунт</label>
+							}
 						</div>
 						<span class="article-title">
 							@publication.Title
 						</span>
 						@* <div>
-							<span>
-								@if (publication.Reactions is not null)
-								{
-									<span>likes:  @publication.Reactions.GetLikes() </span>
-									<span>dislikes: @publication.Reactions.GetDisLikes() </span>
-								}
-							</span>
-							<span>
-								@if (publication.Comments is not null)
-								{
-									<span>comments: @publication.Comments.Count </span>
-								}
-							</span>
-						</div> *@
+				<span>
+				@if (publication.Reactions is not null)
+				{
+				<span>likes:  @publication.Reactions.GetLikes() </span>
+				<span>dislikes: @publication.Reactions.GetDisLikes() </span>
+				}
+				</span>
+				<span>
+				@if (publication.Comments is not null)
+				{
+				<span>comments: @publication.Comments.Count </span>
+				}
+				</span>
+				</div> *@
 						<div>
 							@if (publication.Themes is not null)
 								@foreach (var theme in publication.Themes)
@@ -129,7 +133,6 @@
 						<div class="article-content">
 							@publication.XmlDocumentUrl
 						</div>
-						<label style="color:red">@unathorizedMessage</label>
 						<div>
 							<button class="inverse-auth-btn" style="max-width:30%;font-size:large" @onclick="(()=>ReadArticle(publication.Id))">Читать дальше</button>
 						</div>
@@ -142,7 +145,7 @@
 
 @code {
 	private Publication[]? Publications;
-	private string? unathorizedMessage;
+	private bool unathorized = false;
 	private string? connectionLost;
 	private bool toggleFilters = false;
 	public int userId;
@@ -156,6 +159,14 @@
 	{
 		try
 		{
+			userId = await GetIdFromAccessToken();
+
+			if (userId is 0)
+			{
+				unathorized = true;
+				return;
+			}
+
 			var publication = Publications!.First(x => x.Id == id);
 
 			if (publication.Favorites is not null && publication.Favorites.Contains(userId.ToString()))
@@ -178,7 +189,7 @@
 		catch (HttpRequestException e)
 		{
 			if (e.StatusCode is System.Net.HttpStatusCode.Unauthorized)
-				unathorizedMessage = "Вы не авторизованы";
+				unathorized = true;
 		}
 	}
 
@@ -193,7 +204,6 @@
 		try
 		{
 			Publications = await publicationService.GetPublications();
-			userId = await GetIdFromAccessToken();
 			StateHasChanged();
 		}
 		catch (HttpRequestException)
@@ -205,6 +215,9 @@
 	private async Task<int> GetIdFromAccessToken()
 	{
 		var accessToken = await Cookie.GetValue("access_token");
+
+		if (string.IsNullOrEmpty(accessToken)) return 0;
+
 		var jwt = new JwtSecurityToken(accessToken);
 
 		var strId = jwt.Claims.First(x => x.Type == ClaimsIdentity.DefaultNameClaimType).Value;
