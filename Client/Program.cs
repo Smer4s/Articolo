@@ -24,8 +24,8 @@ namespace Client
             app.UseStaticFiles();
             app.UseAntiforgery();
 
-            app.MapRazorComponents<App>()
-                .AddInteractiveServerRenderMode();
+			app.MapRazorComponents<App>()
+				.AddInteractiveServerRenderMode();
 
             app.MapGet("/", (HttpResponse httpresponse) => httpresponse.Redirect("/feed"));
 

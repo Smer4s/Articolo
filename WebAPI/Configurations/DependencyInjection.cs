@@ -66,7 +66,9 @@ public static class DependencyInjection
         services.Configure<DatabaseConfiguration>(configuration.GetSection(nameof(DatabaseConfiguration)));
         services.AddDbContext<PostgreDbContext>();
 
-        services.AddRepositories();
+		AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
+		services.AddRepositories();
     }
 
     public static void ConfigureAutoMapper(this IServiceCollection services)

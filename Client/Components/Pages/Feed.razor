@@ -7,7 +7,7 @@
 @using Client.Services.Abstractions
 @inject IPublicationService publicationService
 @inject NavigationManager nav
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender:false))
 
 <PageTitle>Лента</PageTitle>
 
@@ -100,43 +100,43 @@
 </div>
 
 @code {
-  private Publication[]? Publications;
-  private string? unathorizedMessage;
-  private string? connectionLost;
+	private Publication[]? Publications;
+	private string? unathorizedMessage;
+	private string? connectionLost;
 
-  async Task AddToFavorites(int id)
-  {
-    try
-    {
-      await publicationService.AddPublicationToFavorites(id);
+	async Task AddToFavorites(int id)
+	{
+		try
+		{
+			await publicationService.AddPublicationToFavorites(id);
 
-      Publications!.First(x => x.Id == id).FavouritesCount++;
-    }
-    catch (HttpRequestException e)
-    {
-      if (e.StatusCode is System.Net.HttpStatusCode.Unauthorized)
-        unathorizedMessage = "Вы не авторизованы";
-    }
-  }
+			Publications!.First(x => x.Id == id).FavouritesCount++;
+		}
+		catch (HttpRequestException e)
+		{
+			if (e.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+				unathorizedMessage = "Вы не авторизованы";
+		}
+	}
 
-  void ReadArticle(int id)
-  {
-    nav.NavigateTo(Path.Combine("article", id.ToString()));
-  }
+	void ReadArticle(int id)
+	{
+		nav.NavigateTo(Path.Combine("article", id.ToString()));
+	}
 
-  protected override async Task OnAfterRenderAsync(bool firstRender)
-  {
-    try
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (!firstRender) return;
+		try
     {
       Publications = await publicationService.GetPublications();
 
-      if (firstRender)
+      
         StateHasChanged();
     }
     catch (HttpRequestException)
     {
       connectionLost = "Проверьте подключение к интернету";
     }
-    await base.OnAfterRenderAsync(firstRender);
   }
 }

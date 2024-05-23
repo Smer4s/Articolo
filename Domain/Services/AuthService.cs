@@ -26,7 +26,7 @@ namespace Domain.Services
 
             var user = await users.Get(id);
 
-            var tokens = tokenService.RefreshTokens(user, apiToken.RefreshToken);
+            var tokens = tokenService.RefreshTokens(user, apiToken.RefreshToken, apiToken.AccessToken);
 
             user.RefreshToken = tokens.RefreshToken;
 
