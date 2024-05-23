@@ -50,16 +50,25 @@
 				</div>
 			</div>
 
-			<div style="display:grid; grid-template-columns: 30% 20%; grid-gap:5%; padding-top:2%">
-				<button class="auth-btn" style="background-color:#55B765; font-size:large"
-								@onclick="UpdateUserAsync">
-					Сохранить изменения
-				</button>
-				<button class="auth-btn" style="background-color:#CA5454; font-size:large"
-								@onclick="RevertUpdate">
-					Отменить
-				</button>
-			</div>
+			@if (showEdit)
+			{
+				<div style="display:grid; grid-template-columns: 30% 20%; grid-gap:5%; padding-top:2%">
+					<button class="auth-btn" style="background-color:#55B765; font-size:large"
+									@onclick="UpdateUserAsync">
+						Сохранить изменения
+					</button>
+					<button class="auth-btn" style="background-color:#CA5454; font-size:large"
+									@onclick="RevertUpdate">
+						Отменить
+					</button>
+				</div>
+			}
+			else
+			{
+				<div style="color:#55B765; font-size:x-large; text-align:center">
+					Изменения успешно сохранены!
+				</div>
+			}
 		</div>
 	</div>
 }
@@ -77,6 +86,8 @@ else
 
 	User? UpdateUser { get; set; }
 
+	bool showEdit = true;
+
 	void RevertUpdate()
 	{
 		UpdateUser = Copy(User);
@@ -88,6 +99,7 @@ else
 		await UserService.UpdateUser(UpdateUser);
 		User = await UserService.GetUser();
 		UpdateUser = Copy(User);
+		showEdit = false;
 	}
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)

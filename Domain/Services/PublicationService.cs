@@ -8,6 +8,14 @@ namespace Domain.Services;
 
 public class PublicationService(UserService users, IPublicationRepository publications, IThemeRepository themes)
 {
+	public async Task<Publication> GetPublication(int id)
+	{
+		var publ = await publications.GetPublication(id);
+
+		Guard.Against.NotFound(id, publ);
+
+		return publ;
+	}
     public async Task Create(int id, CreatePublicationDto dto)
     {
         var user = await users.Get(id);
@@ -19,7 +27,8 @@ public class PublicationService(UserService users, IPublicationRepository public
             Title = dto.Title,
             XmlDocumentUrl = dto.XmlDocument,
             Themes = theme,
-            Status = Status.Moderation
+            Status = Status.Moderation,
+			Created = DateTime.Now
         };
 
         await publications.Create(publication);
@@ -72,6 +81,25 @@ public class PublicationService(UserService users, IPublicationRepository public
 
     public IEnumerable<Publication> GetUnreviewedPublications() =>
         publications.GetAll(x => x.Status is Status.Moderation);
+
+	public async Task RemovePublicationFromFavorites(int id, int userId)
+	{
+		var user = await users.Get(userId);
+		var publication = publications.GetAll(x=>x.Id == id).First();
+
+		if (publication.Favourites is null)
+			throw new Exception("Wrong publication");
+
+		publication.Favourites.Remove(user);
+
+		if (user.Favorites is null)
+			throw new Exception("Wrong user");
+
+		user.Favorites.Remove(publication);
+
+		await users.Update(user);
+		await publications.SaveChanges();
+	}
 
     public async Task AddPublicationToFavorites(int id, int userId)
     {

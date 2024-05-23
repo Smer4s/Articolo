@@ -1,0 +1,112 @@
+﻿@page "/user/favs"
+@using Client.Extensions
+@using Client.Models.Publication
+@using Client.Services.Abstractions
+
+@inject IUserService UserService
+@inject NavigationManager nav
+
+@rendermode @(new InteractiveServerRenderMode(prerender:false))
+
+<div class="pages-layout">
+	<div class="article-box">
+		@if (publications is null)
+		{
+			<p><em>Загрузка...</em></p>
+		}
+		else if (publications.Any() == false)
+		{
+			<p>
+				<em>Извините, но у вас нет любимых публикаций. Это повод их </em>
+				<a href="/feed">искать!</a>
+			</p>
+		}
+		else
+		{
+			foreach (var publication in publications)
+			{
+				<div class="article" style="margin:3% 1%">
+					<div style="display:grid;grid-template-columns:70% 25%; grid-gap:5%">
+						<div>
+							<img src="https://cdn1.iconfinder.com/data/icons/user-pictures/101/malecostume-256.png" style="border-radius:50%; width:10%; height:100%" />
+							<span class="article-title" style="font-size:large">
+								@if (publication.Issuer is not null)
+								{
+									@if (string.IsNullOrEmpty(publication.Issuer.UserName))
+									{
+										<span>
+											@publication.Issuer.Login
+										</span>
+									}
+									else
+									{
+										<span>
+											@publication.Issuer.UserName
+										</span>
+									}
+								}
+								else
+								{
+									<em>
+										~Anonymous~
+									</em>
+								}
+							</span>
+						</div>
+						<div class="clear-btn">
+							<img src="/images/fav_icon_2.png" />
+						</div>
+						<span style="color:#558CB7">
+							@(publication.Created.ToTimeIntervalString())
+						</span>
+					</div>
+					<a @onclick="()=>ReadArticle(publication.Id)" class="article-title">
+						@publication.Title
+					</a>
+					<div>
+						<span>
+							@if (publication.Reactions is not null)
+							{
+								<span>likes:  @publication.Reactions.GetLikes() </span>
+								<span>dislikes: @publication.Reactions.GetDisLikes() </span>
+							}
+						</span>
+						<span>
+							@if (publication.Comments is not null)
+							{
+								<span>comments: @publication.Comments.Count </span>
+							}
+						</span>
+					</div>
+					<div>
+						@if (publication.Themes is not null)
+							@foreach (var theme in publication.Themes)
+							{
+								<span>@theme.Title* </span>
+							}
+					</div>
+					<div class="article-content">
+						@publication.XmlDocumentUrl
+					</div>
+				</div>
+			}
+		}
+	</div>
+</div>
+
+@code {
+
+	IEnumerable<Publication>? publications;
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (!firstRender) return;
+
+		publications = await UserService.GetFavorites();
+		StateHasChanged();
+	}
+
+	void ReadArticle(int id)
+	{
+		nav.NavigateTo(Path.Combine("article", id.ToString()));
+	}
+}

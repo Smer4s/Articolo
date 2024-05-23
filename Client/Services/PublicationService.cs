@@ -1,6 +1,7 @@
 ﻿using Client.Configurations;
 using Client.Extensions;
 using Client.Models.Auth;
+using Client.Models.Comment;
 using Client.Models.Publication;
 using Client.Services.Abstractions;
 using Microsoft.Extensions.Options;
@@ -12,7 +13,24 @@ namespace Client.Services;
 public class PublicationService(IIdentityProviderHttpClient httpClient, IOptions<ApiOptions> options) : IPublicationService
 {
     private readonly API _api = new API(options);
-    public async Task AddPublicationToFavorites(int publicationId)
+
+	public async Task AddCommentToPublication(int publicationId, Comment comment)
+	{
+		using var request = new HttpRequestMessage(HttpMethod.Post, _api.CommentUrl);
+
+		var values = new Dictionary<string, object>()
+		{
+			{ "publicationId", publicationId },
+			{ "commentText", comment.Text },
+			{ "commentPosted", comment.Posted }
+		};
+
+		request.Content = new StringContent(values.ToJson(), null, "application/json");
+
+		await httpClient.SendAsync(request, CancellationToken.None);
+	}
+
+	public async Task AddPublicationToFavorites(int publicationId)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, _api.PublicationUrl + $"/favorites/{publicationId}");
         var response = await httpClient.SendAsync(request, CancellationToken.None);
@@ -60,7 +78,13 @@ public class PublicationService(IIdentityProviderHttpClient httpClient, IOptions
         return JsonConvert.DeserializeObject<Publication[]>(content) ?? throw new JsonSerializationException();
     }
 
-    public Task UpdatePublication(Publication publication)
+	public async Task RemovePublicationFromFavorites(int publicationId)
+	{
+		using var request = new HttpRequestMessage(HttpMethod.Delete, _api.PublicationUrl + $"/favorites/{publicationId}");
+		var response = await httpClient.SendAsync(request, CancellationToken.None);
+	}
+
+	public Task UpdatePublication(Publication publication)
     {
         throw new NotImplementedException();
     }

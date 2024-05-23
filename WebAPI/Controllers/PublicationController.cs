@@ -63,6 +63,19 @@ public class PublicationController(IMediator mediator) : ControllerBase
 		return Ok();
 	}
 
+	[HttpDelete("favorites/{id}")]
+	[Authorize]
+	public async Task<IActionResult> RemoveFromFavorites(int id)
+	{
+		await mediator.Send(new RemovePublicationFromFavoritesCommand
+		{
+			Id = id,
+			UserId = User.GetId(),
+		});
+
+		return Ok();
+	}
+
 	[HttpPut]
 	[Authorize]
 	public async Task<IActionResult> EditMyPublication(UpdatePublicationDto dto)

@@ -5,4 +5,5 @@ namespace Domain.Repositories;
 public interface IPublicationRepository : IRepository<Publication>
 {
 	public IList<Publication> GetAll(Func<Publication,bool>? filter = null);
+	public Task<Publication?> GetPublication(int id);
 }

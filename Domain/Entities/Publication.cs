@@ -20,6 +20,7 @@ public class Publication : BaseEntity
     public virtual IList<PublicationReaction>? Reactions { get; set; } = null!;
 
     public virtual IList<User>? Favourites { get; set; } = null!;
+	public DateTime Created { get; set; }
 
-    public float Rating { get; set; }
+	public float Rating { get; set; }
 }

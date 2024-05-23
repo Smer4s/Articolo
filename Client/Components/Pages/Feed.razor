@@ -5,112 +5,175 @@
 @using Client.Models.Publication
 @using Microsoft.AspNetCore.Components.Authorization
 @using Client.Services.Abstractions
+@using System.IdentityModel.Tokens.Jwt
 @inject IPublicationService publicationService
 @inject NavigationManager nav
+@inject ICookie Cookie
 @rendermode @(new InteractiveServerRenderMode(prerender:false))
 
 <PageTitle>Лента</PageTitle>
 
 <div class="pages-layout">
-  <div class="grid-container">
-    <div class="feed-filters-box">
-      <div class="filters-title">Моя лента</div>
-    </div>
-    <div class="feed-leaderboard-box">
-      <div class="leaderboard-title">Лучшие статьи</div>
-      @if (Publications is null)
-      {
-        <p><em>Загрузка...</em></p>
-        <p style="color:red"><em>@connectionLost</em></p>
-      }
-      else
-      {
-        int count = 0;
-        @foreach (var publication in Publications.OrderBy(x => x.Rating))
-        {
-          if (count >= 4)
-            break;
-          count++;
-          <div class="leaderboard-content">
-            @publication.Title
-            <span style="align-self:flex-end">@publication.Rating⭐</span>
-          </div>
-        }
-      }
-    </div>
-    <div class="article-box">
-      @if (Publications is null)
-      {
-        <p><em>Загрузка...</em></p>
-        <h3 style="color:red">@connectionLost</h3>
-      }
-      else
-      {
-        foreach (var publication in Publications)
-        {
-          <div class="article">
-            <div>
-              <span>
-                @if (publication.Issuer is not null)
-                  @publication.Issuer.UserName
-
-              </span>
-              <span>
-                Опубликовано: @(publication.Created.ToTimeIntervalString())
-              </span>
-              <button @onclick="(()=>AddToFavorites(publication.Id))">
-                favourites: @publication.FavouritesCount
-              </button>
-            </div>
-            <span class="article-title">
-              @publication.Title
-            </span>
-            <div>
-              <span>
-                @if (publication.Reactions is not null)
-                {
-                  <span>likes:  @publication.Reactions.GetLikes() </span>
-                  <span>dislikes: @publication.Reactions.GetDisLikes() </span>
-                }
-              </span>
-              <span>
-                @if (publication.Comments is not null)
-                {
-                  <span>comments: @publication.Comments.Count </span>
-                }
-              </span>
-            </div>
-            <div>
-              @if (publication.Themes is not null)
-                @foreach (var theme in publication.Themes)
-                {
-                  <span>@theme.Title* </span>
-                }
-            </div>
-            <div class="article-content">
-              @publication.XmlDocumentUrl
-            </div>
-            <label style="color:red">@unathorizedMessage</label>
-            <button @onclick="(()=>ReadArticle(publication.Id))">Читать дальше</button>
-          </div>
-        }
-      }
-    </div>
-  </div>
+	<div class="grid-container" style="@((toggleFilters)?"grid-template-rows: 10% 70%;":"")">
+		<div class="feed-filters-box">
+			<button class="filters-title" style="background-color:#FFFFFF" @onclick="ToggleFilters">Моя лента</button>
+			@if (toggleFilters)
+			{
+				<div>
+					Фильтры
+				</div>
+			}
+		</div>
+		<div class="feed-leaderboard-box">
+			<div class="leaderboard-title">Лучшие статьи</div>
+			@if (Publications is null)
+			{
+				<p><em>Загрузка...</em></p>
+				<p style="color:red"><em>@connectionLost</em></p>
+			}
+			else
+			{
+				int count = 0;
+				@foreach (var publication in Publications.OrderBy(x => x.Rating))
+				{
+					if (count >= 4)
+						break;
+					count++;
+					<div class="leaderboard-content">
+						@publication.Title
+						<span style="align-self:flex-end">@publication.Rating⭐</span>
+					</div>
+				}
+			}
+		</div>
+		<div class="article-box">
+			@if (Publications is null)
+			{
+				<p><em>Загрузка...</em></p>
+				<h3 style="color:red">@connectionLost</h3>
+			}
+			else
+			{
+				foreach (var publication in Publications)
+				{
+					<div class="article" style="margin:3% 1%">
+						<div style="display:grid;grid-template-columns:70% 25%; grid-gap:5%">
+							<div>
+								<img src="https://cdn1.iconfinder.com/data/icons/user-pictures/101/malecostume-256.png" style="border-radius:50%; width:10%; height:100%" />
+								<span class="article-title" style="font-size:large">
+									@if (publication.Issuer is not null)
+									{
+										@if (string.IsNullOrEmpty(publication.Issuer.UserName))
+										{
+											<span>
+												@publication.Issuer.Login
+											</span>
+										}
+										else
+										{
+											<span>
+												@publication.Issuer.UserName
+											</span>
+										}
+									}
+									else
+									{
+										<em>
+											~Anonymous~
+										</em>
+									}
+								</span>
+							</div>
+							<button @onclick="(()=>AddToFavorites(publication.Id))" class="clear-btn">
+								@if (IsUserFavouritePublication(publication))
+								{
+									<img src="/images/fav_icon_2.png" />
+								}
+								else
+								{
+									<img src="/images/fav_icon.png" />
+								}
+								<span style="font-size:small; color:#CAA954; margin-left:5%; font-weight:bold">
+									@publication.FavouritesCount
+								</span>
+							</button>
+							<span style="color:#558CB7">
+								@(publication.Created.ToTimeIntervalString())
+							</span>
+						</div>
+						<span class="article-title">
+							@publication.Title
+						</span>
+						@* <div>
+							<span>
+								@if (publication.Reactions is not null)
+								{
+									<span>likes:  @publication.Reactions.GetLikes() </span>
+									<span>dislikes: @publication.Reactions.GetDisLikes() </span>
+								}
+							</span>
+							<span>
+								@if (publication.Comments is not null)
+								{
+									<span>comments: @publication.Comments.Count </span>
+								}
+							</span>
+						</div> *@
+						<div>
+							@if (publication.Themes is not null)
+								@foreach (var theme in publication.Themes)
+								{
+									<span>@theme.Title* </span>
+								}
+						</div>
+						<div class="article-content">
+							@publication.XmlDocumentUrl
+						</div>
+						<label style="color:red">@unathorizedMessage</label>
+						<div>
+							<button class="inverse-auth-btn" style="max-width:30%;font-size:large" @onclick="(()=>ReadArticle(publication.Id))">Читать дальше</button>
+						</div>
+					</div>
+				}
+			}
+		</div>
+	</div>
 </div>
 
 @code {
 	private Publication[]? Publications;
 	private string? unathorizedMessage;
 	private string? connectionLost;
+	private bool toggleFilters = false;
+	public int userId;
+
+	private void ToggleFilters()
+	{
+		toggleFilters = !toggleFilters;
+	}
 
 	async Task AddToFavorites(int id)
 	{
 		try
 		{
-			await publicationService.AddPublicationToFavorites(id);
+			var publication = Publications!.First(x => x.Id == id);
 
-			Publications!.First(x => x.Id == id).FavouritesCount++;
+			if (publication.Favorites is not null && publication.Favorites.Contains(userId.ToString()))
+			{
+				await publicationService.RemovePublicationFromFavorites(id);
+				publication.Favorites.Remove(userId.ToString());
+			}
+			else
+			{
+				await publicationService.AddPublicationToFavorites(id);
+
+				if (publication.Favorites is null)
+					publication.Favorites = new List<string>();
+
+				publication.Favorites.Add(userId.ToString());
+			}
+
+			StateHasChanged();
 		}
 		catch (HttpRequestException e)
 		{
@@ -128,15 +191,31 @@
 	{
 		if (!firstRender) return;
 		try
-    {
-      Publications = await publicationService.GetPublications();
+		{
+			Publications = await publicationService.GetPublications();
+			userId = await GetIdFromAccessToken();
+			StateHasChanged();
+		}
+		catch (HttpRequestException)
+		{
+			connectionLost = "Проверьте подключение к интернету";
+		}
+	}
 
-      
-        StateHasChanged();
-    }
-    catch (HttpRequestException)
-    {
-      connectionLost = "Проверьте подключение к интернету";
-    }
-  }
+	private async Task<int> GetIdFromAccessToken()
+	{
+		var accessToken = await Cookie.GetValue("access_token");
+		var jwt = new JwtSecurityToken(accessToken);
+
+		var strId = jwt.Claims.First(x => x.Type == ClaimsIdentity.DefaultNameClaimType).Value;
+
+		if (int.TryParse(strId, out int value))
+			return value;
+
+		return 0;
+	}
+
+	private bool IsUserFavouritePublication(Publication publication) =>
+	publication.Favorites is not null &&
+	publication.Favorites.Contains(userId.ToString());
 }

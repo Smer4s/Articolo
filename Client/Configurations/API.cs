@@ -10,4 +10,5 @@ public class API(IOptions<ApiOptions> options)
     public string ModeratorUrl => $"{options.Value.BaseUrl}/moder";
     public string AdminUrl => $"{options.Value.BaseUrl}/admin";
     public string UserUrl => $"{options.Value.BaseUrl}/user";
+	public string CommentUrl => $"{options.Value.BaseUrl}/comment";
 }

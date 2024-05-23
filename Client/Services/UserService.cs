@@ -14,9 +14,16 @@ namespace Client.Services;
 public class UserService(IIdentityProviderHttpClient httpClient, IOptions<ApiOptions> options) : IUserService
 {
 	private readonly API _api = new API(options);
-	public Task<IEnumerable<Publication>> GetFavorites()
+	public async Task<IEnumerable<Publication>> GetFavorites()
 	{
-		throw new NotImplementedException();
+		using var request = new HttpRequestMessage(HttpMethod.Get, Path.Combine(_api.UserUrl,"favs"));
+
+		var response = await httpClient.SendAsync(request, CancellationToken.None);
+
+		var publications = await response.Content.ReadAsStringAsync();
+
+		return JsonConvert.DeserializeObject<IEnumerable<Publication>>(publications) ?? throw new JsonSerializationException();
+
 	}
 
 	public async Task<User> GetUser()

@@ -1,78 +1,156 @@
 ﻿@page "/article/{Id:int}"
 @using Client.Extensions
+@using Client.Models.Comment
 @using Client.Models.Publication
 @using Client.Services.Abstractions
 @inject IPublicationService publicationService
 @inject NavigationManager nav
-@rendermode RenderMode.InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender:false))
 
 <PageTitle>@(Publication is not null ? Publication.Title : string.Empty)</PageTitle>
 
 <div class="pages-layout">
-  <div class="article-box">
-    @if (Publication is null)
-    {
-      <p><em>Загрузка...</em></p>
-    }
-    else
-    {
+	<div class="article-box">
+		@if (Publication is null)
+		{
+			<p><em>Загрузка...</em></p>
+		}
+		else
+		{
 
-      <div class="article">
-        <div>
-          <span>
-            @if (Publication.Issuer is not null)
-              @Publication.Issuer.UserName
-          </span>
-          <span>
-            Опубликовано: @(Publication.Created.ToTimeIntervalString())
-          </span>
-        </div>
-        <span class="article-title">
-          @Publication.Title
-        </span>
-        <div>
-          <span>
-            @if (Publication.Reactions is not null)
-            {
-              <span>likes:  @Publication.Reactions.GetLikes() </span>
-              <span>dislikes: @Publication.Reactions.GetDisLikes() </span>
-            }
-          </span>
-          <span>
-            @if (Publication.Comments is not null)
-            {
-              <span>comments: @Publication.Comments.Count </span>
-            }
-          </span>
-        </div>
-        <div>
-          @if (Publication.Themes is not null)
-            @foreach (var theme in Publication.Themes)
-            {
-              <span>@theme.Title* </span>
-            }
-        </div>
-        <div class="article-content">
-          @Publication.XmlDocumentUrl
-        </div>
-      </div>
-    }
-  </div>
+			<div class="article">
+				<div>
+					<span>
+						@if (Publication.Issuer is not null)
+							@Publication.Issuer.UserName
+
+
+
+
+
+					</span>
+					<span style="color:#558CB7">
+						@(Publication.Created.ToTimeIntervalString())
+					</span>
+				</div>
+				<span class="article-title">
+					@Publication.Title
+				</span>
+				<div>
+					<span>
+						@if (Publication.Reactions is not null)
+						{
+							<span>likes:  @Publication.Reactions.GetLikes() </span>
+							<span>dislikes: @Publication.Reactions.GetDisLikes() </span>
+						}
+					</span>
+					<span>
+						@if (Publication.Comments is not null)
+						{
+							<span>comments: @Publication.Comments.Count </span>
+						}
+					</span>
+				</div>
+				<div>
+					@if (Publication.Themes is not null)
+						@foreach (var theme in Publication.Themes)
+						{
+							<span>@theme.Title* </span>
+						}
+				</div>
+				<div class="article-content">
+					@Publication.XmlDocumentUrl
+				</div>
+			</div>
+		}
+	</div>
+
+	<div class="comments-box">
+		<div style="font-weight:bold;font-size:large;">
+			Комментарии
+		</div>
+		@if (Comments is not null)
+		{
+			<div style="box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin: 0.5% 0;">
+				@foreach (var comment in Comments)
+				{
+					<div style="padding: 1% 0%">
+						<span class="account-username" style="color:#558CB7; max-width:35%;">
+							@comment.IssuerName
+							@comment.Posted.ToTimeIntervalString()
+						</span>
+					</div>
+					<div style="padding: 0.5% 0">
+						@comment.Text
+					</div>
+				}
+			</div>
+		}
+		<div style="box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin: 2% 0">
+			<div style="font-weight:bold">
+				Добавить комментарий:
+			</div>
+			@if (!error)
+			{
+				<InputText style="width:100%; border:none;" @bind-Value=commentText>
+
+				</InputText>
+			}
+			else
+			{
+				<div @onclick="(()=>error = false)" style="color:red;">
+					Сообщение не должно быть пустое
+				</div>
+			}
+			<button class="auth-btn" style="max-width:12%;font-size:medium" @onclick="AddComment">
+				Добавить
+			</button>
+		</div>
+	</div>
 </div>
 
 @code {
-  [Parameter]
-  public int Id { get; set; }
+	[Parameter]
+	public int Id { get; set; }
 
-  Publication? Publication { get; set; }
+	Publication? Publication { get; set; }
 
-  protected override async Task OnAfterRenderAsync(bool firstRender)
-  {
-    Publication = await publicationService.GetPublication(Id);
+	IEnumerable<Comment>? Comments;
+	bool error = false;
 
-    if (firstRender)
-      StateHasChanged();
+	string commentText = "";
 
-    await base.OnAfterRenderAsync(firstRender);
-  }
+	async Task AddComment()
+	{
+		if (string.IsNullOrEmpty(commentText))
+		{
+			error = true;
+			return;
+		}
+
+		var comment = new Comment()
+			{
+				Posted = DateTime.Now,
+				Text = commentText
+			};
+
+		await publicationService.AddCommentToPublication(Publication!.Id, comment);
+
+		Publication = await publicationService.GetPublication(Id);
+		Comments = Publication!.Comments;
+
+		commentText = "";
+		StateHasChanged();
+	}
+
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (!firstRender) return;
+
+		Publication = await publicationService.GetPublication(Id);
+		Comments = Publication!.Comments;
+
+		StateHasChanged();
+	}
 }
