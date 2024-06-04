@@ -66,13 +66,13 @@ public class PostgreDbContext(DbContextOptions<PostgreDbContext> dbContextOption
 			.Entity<User>()
 			.HasMany(user => user.Comments)
 			.WithOne(comment => comment.Issuer)
-			.OnDelete(DeleteBehavior.NoAction);
+			.OnDelete(DeleteBehavior.Cascade);
 
 		builder
 			.Entity<User>()
 			.HasMany(user => user.Reactions)
 			.WithOne(reaction => reaction.Issuer)
-			.OnDelete(DeleteBehavior.NoAction);
+			.OnDelete(DeleteBehavior.Cascade);
 
 		builder
 			.Entity<Publication>()
@@ -87,7 +87,8 @@ public class PostgreDbContext(DbContextOptions<PostgreDbContext> dbContextOption
 		builder
 			.Entity<Publication>()
 			.HasMany(p => p.Reactions)
-			.WithOne(r => r.Publication);
+			.WithOne(r => r.Publication)	
+			.OnDelete(DeleteBehavior.Cascade);
 
 		builder.Entity<Publication>()
 			.HasMany(p => p.Favourites)

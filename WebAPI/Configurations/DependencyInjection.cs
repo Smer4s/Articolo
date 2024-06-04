@@ -1,19 +1,14 @@
 ﻿using Domain.Configurations;
 using Domain.Entities;
 using Domain.Entities.Reactions;
-using Domain.Enums;
 using Domain.Repositories;
 using Domain.Services;
 using Infrastructure;
 using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authentication.OAuth;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.IdentityModel.Tokens.Jwt;
-using System.Runtime.Intrinsics.Arm;
-using System.Security.Cryptography;
 using WebAPI.Models.Dto;
 
 namespace WebAPI.Configurations;
@@ -89,9 +84,16 @@ public static class DependencyInjection
 				IssuerName = string.IsNullOrEmpty(comment.Issuer.UserName) ? comment.Issuer.Login : comment.Issuer.UserName,
 				Posted = comment.Posted,
 				Text = comment.Text
+			})))
+			.ForMember(p => p.Reactions, opt => opt.MapFrom(x => x.Reactions == null ? null : x.Reactions.Select(x => new PublicationReactionDto()
+			{
+				Id= x.Id,
+				ReactionType = x.ReactionType,
+				UserId = x.Issuer.Id
 			})));
 			cfg.CreateMap<Comment, CommentDto>();
-			cfg.CreateMap<PublicationReaction, PublicationReactionDto>();
+			cfg.CreateMap<PublicationReaction, PublicationReactionDto>()
+			.ForMember(p=>p.UserId, opt => opt.MapFrom(x=>x.Issuer.Id));
 			cfg.CreateMap<Theme, ThemeDto>();
 		});
 	}

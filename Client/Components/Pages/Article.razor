@@ -28,6 +28,7 @@
 
 
 
+
 					</span>
 					<span style="color:#558CB7">
 						@(Publication.Created.ToTimeIntervalString())
@@ -37,26 +38,6 @@
 					@Publication.Title
 				</span>
 				<div>
-					<span>
-						@if (Publication.Reactions is not null)
-						{
-							<span>likes:  @Publication.Reactions.GetLikes() </span>
-							<span>dislikes: @Publication.Reactions.GetDisLikes() </span>
-						}
-					</span>
-					<span>
-						@if (Publication.Comments is not null)
-						{
-							<span>comments: @Publication.Comments.Count </span>
-						}
-					</span>
-				</div>
-				<div>
-					@if (Publication.Themes is not null)
-						@foreach (var theme in Publication.Themes)
-						{
-							<span>@theme.Title* </span>
-						}
 				</div>
 				<div class="article-content">
 					@Publication.XmlDocumentUrl
@@ -65,49 +46,64 @@
 		}
 	</div>
 
-	<div class="comments-box">
-		<div style="font-weight:bold;font-size:large;">
-			Комментарии
-		</div>
-		@if (Comments is not null)
-		{
-			<div style="box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin: 0.5% 0;">
-				@foreach (var comment in Comments)
-				{
-					<div style="padding: 1% 0%">
-						<span class="account-username" style="color:#558CB7; max-width:35%;">
-							@comment.IssuerName
-							@comment.Posted.ToTimeIntervalString()
-						</span>
-					</div>
-					<div style="padding: 0.5% 0">
-						@comment.Text
-					</div>
-				}
-			</div>
-		}
-		<div style="box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin: 2% 0">
-			<div style="font-weight:bold">
-				Добавить комментарий:
-			</div>
-			@if (!error)
-			{
-				<InputText style="width:100%; border:none;" @bind-Value=commentText>
 
-				</InputText>
-			}
-			else
+	@if (Publication is not null && Publication.Status == "Published")
+	{
+		<div class="comments-box">
+			<div style="font-weight:bold;font-size:large;">
+				Комментарии
+			</div>
+			@if (Comments is not null)
 			{
-				<div @onclick="(()=>error = false)" style="color:red;">
-					Сообщение не должно быть пустое
+				<div style="box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin: 0.5% 0;">
+					@foreach (var comment in Comments)
+					{
+						<div style="padding: 1% 0%">
+							<span class="account-username" style="color:#558CB7; max-width:35%;">
+								@comment.IssuerName
+								@comment.Posted.ToTimeIntervalString()
+							</span>
+						</div>
+						<div style="padding: 0.5% 0">
+							@comment.Text
+						</div>
+					}
 				</div>
 			}
-			<button class="auth-btn" style="max-width:12%;font-size:medium" @onclick="AddComment">
-				Добавить
-			</button>
+			<div style="box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin: 2% 0">
+				<div style="font-weight:bold">
+					Добавить комментарий:
+				</div>
+				@if (error)
+				{
+					<div @onclick="(()=>error = false)" style="color:red;">
+						Сообщение не должно быть пустое
+					</div>
+				}
+				@if (unathorized)
+				{
+					<div>
+						<span style="color:red;">
+							Комментарии могут оставлять только
+						</span>
+						<a href="/auth">зарегистрированные</a>
+						<span style="color:red;">
+							пользователи
+						</span>
+					</div>
+				}
+				@if (!unathorized && !error)
+				{
+					<InputText style="width:100%; border:none;" @bind-Value=commentText />
+					<button class="auth-btn" style="max-width:12%;font-size:medium" @onclick="AddComment">
+						Добавить
+					</button>
+				}
+			</div>
 		</div>
-	</div>
+	}
 </div>
+
 
 @code {
 	[Parameter]
@@ -117,6 +113,7 @@
 
 	IEnumerable<Comment>? Comments;
 	bool error = false;
+	bool unathorized = false;
 
 	string commentText = "";
 
@@ -134,8 +131,17 @@
 				Text = commentText
 			};
 
-		await publicationService.AddCommentToPublication(Publication!.Id, comment);
-
+		try
+		{
+			await publicationService.AddCommentToPublication(Publication!.Id, comment);
+		}
+		catch (HttpRequestException e)
+		{
+			if (e.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+				unathorized = true;
+			else
+				throw e;
+		}
 		Publication = await publicationService.GetPublication(Id);
 		Comments = Publication!.Comments;
 

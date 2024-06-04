@@ -34,14 +34,14 @@
 			else
 			{
 				int count = 0;
-				@foreach (var publication in Publications.OrderBy(x => x.Rating))
+				@foreach (var publication in Publications.OrderByDescending(x => x.Rating))
 				{
 					if (count >= 4)
 						break;
 					count++;
 					<div class="leaderboard-content">
-						@publication.Title
-						<span style="align-self:flex-end">@publication.Rating⭐</span>
+						<a @onclick="(()=>ReadArticle(publication.Id))"> @publication.Title</a>
+						<span style="align-self:flex-end">@(Math.Round(publication.Rating, 1))⭐</span>
 					</div>
 				}
 			}
@@ -108,21 +108,41 @@
 						<span class="article-title">
 							@publication.Title
 						</span>
-						@* <div>
-				<span>
-				@if (publication.Reactions is not null)
-				{
-				<span>likes:  @publication.Reactions.GetLikes() </span>
-				<span>dislikes: @publication.Reactions.GetDisLikes() </span>
-				}
-				</span>
-				<span>
-				@if (publication.Comments is not null)
-				{
-				<span>comments: @publication.Comments.Count </span>
-				}
-				</span>
-				</div> *@
+						<div>
+							<span>
+								@if (publication.Reactions is not null)
+								{
+									@if (!IsUserLikedPublication(publication.Reactions))
+									{
+										<button class="clear-btn" @onclick="(()=>AddLike(publication.Id))">
+											<img src="/images/like_icon.png" />
+										</button>
+									}
+									else
+									{
+										<button class="clear-btn" @onclick="(()=>RemoveLike(publication.Id))">
+											<img src="/images/like_icon_2.png" />
+										</button>
+									}
+									<span style="color:#55B765">@publication.Reactions.GetLikes().Count()</span>
+
+									@if (!IsUserDislikedPublication(publication.Reactions))
+									{
+										<button class="clear-btn" @onclick="(()=>AddDislike(publication.Id))">
+											<img src="/images/dislike_icon.png" />
+										</button>
+									}
+									else
+									{
+										<button class="clear-btn" @onclick="(()=>RemoveDislike(publication.Id))">
+											<img src="/images/dislike_icon_2.png" />
+										</button>
+									}
+									<span style="color:#CA5454">@publication.Reactions.GetDisLikes().Count()</span>
+
+								}
+							</span>
+						</div>
 						<div>
 							@if (publication.Themes is not null)
 								@foreach (var theme in publication.Themes)
@@ -134,7 +154,7 @@
 							@publication.XmlDocumentUrl
 						</div>
 						<div>
-							<button class="inverse-auth-btn" style="max-width:30%;font-size:large" @onclick="(()=>ReadArticle(publication.Id))">Читать дальше</button>
+							<button class="inverse-auth-btn" style="max-width:30%;font-size:large; margin-top:1%" @onclick="(()=>ReadArticle(publication.Id))">Читать дальше</button>
 						</div>
 					</div>
 				}
@@ -152,7 +172,171 @@
 
 	private void ToggleFilters()
 	{
-		toggleFilters = !toggleFilters;
+		toggleFilters = false;
+	}
+
+	async Task AddLike(int id)
+	{
+		try
+		{
+			userId = await GetIdFromAccessToken();
+
+			if (userId is 0)
+			{
+				unathorized = true;
+				return;
+			}
+
+			var publication = Publications!.First(x => x.Id == id);
+
+			if (publication.Reactions is null)
+			{
+				publication.Reactions = [];
+			}
+
+			if (IsUserDislikedPublication(publication.Reactions))
+			{
+				await RemoveDislike(publication.Id);
+			}
+
+			if (IsUserLikedPublication(publication.Reactions))
+			{
+				await RemoveLike(publication.Id);
+				return;
+			}
+
+			publication.Reactions.Add(new PublicationReaction()
+				{
+					UserId = userId,
+					ReactionType = Models.Enums.ReactionType.Like
+				});
+
+			await publicationService.LikePublication(id);
+
+			StateHasChanged();
+		}
+		catch (HttpRequestException e)
+		{
+			if (e.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+				unathorized = true;
+		}
+	}
+
+	async Task RemoveLike(int id)
+	{
+		try
+		{
+			userId = await GetIdFromAccessToken();
+
+			if (userId is 0)
+			{
+				unathorized = true;
+				return;
+			}
+
+			var publication = Publications!.First(x => x.Id == id);
+
+			if (publication.Reactions is null)
+				return;
+
+			var reaction = publication.Reactions.FirstOrDefault(x => x.UserId == userId && x.ReactionType is Models.Enums.ReactionType.Like);
+
+			if (reaction is null)
+				return;
+
+			publication.Reactions.Remove(reaction);
+			await publicationService.RemoveLikeFromPublication(id);
+
+			StateHasChanged();
+		}
+		catch (HttpRequestException e)
+		{
+			if (e.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+				unathorized = true;
+		}
+	}
+
+	async Task AddDislike(int id)
+	{
+		try
+		{
+			userId = await GetIdFromAccessToken();
+
+			if (userId is 0)
+			{
+				unathorized = true;
+				return;
+			}
+
+			var publication = Publications!.First(x => x.Id == id);
+
+			if (publication.Reactions is null)
+			{
+				publication.Reactions = [];
+			}
+
+			if (IsUserLikedPublication(publication.Reactions))
+			{
+				await RemoveLike(publication.Id);
+			}
+
+			if (IsUserDislikedPublication(publication.Reactions))
+			{
+				await RemoveDislike(publication.Id);
+				return;
+			}
+
+			publication.Reactions.Add(new PublicationReaction()
+				{
+					UserId = userId,
+					ReactionType = Models.Enums.ReactionType.Dislike
+				});
+
+			await publicationService.DislikePublication(id);
+
+			StateHasChanged();
+		}
+		catch (HttpRequestException e)
+		{
+			if (e.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+				unathorized = true;
+		}
+	}
+
+	async Task RemoveDislike(int id)
+	{
+		try
+		{
+			userId = await GetIdFromAccessToken();
+
+			if (userId is 0)
+			{
+				unathorized = true;
+				return;
+			}
+
+			var publication = Publications!.First(x => x.Id == id);
+
+			if (publication.Reactions is null)
+				return;
+
+			var reaction = publication.Reactions.FirstOrDefault(
+				x => x.UserId == userId &&
+				x.ReactionType is Models.Enums.ReactionType.Dislike);
+
+			if (reaction is null)
+				return;
+
+			publication.Reactions.Remove(reaction);
+			await publicationService.RemoveDislikeFromPublication(id);
+
+			StateHasChanged();
+		}
+		catch (HttpRequestException e)
+		{
+			if (e.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+				unathorized = true;
+		}
 	}
 
 	async Task AddToFavorites(int id)
@@ -179,7 +363,8 @@
 				await publicationService.AddPublicationToFavorites(id);
 
 				if (publication.Favorites is null)
-					publication.Favorites = new List<string>();
+					publication.Favorites = new List<string>
+							();
 
 				publication.Favorites.Add(userId.ToString());
 			}
@@ -203,6 +388,7 @@
 		if (!firstRender) return;
 		try
 		{
+			userId = await GetIdFromAccessToken();
 			Publications = await publicationService.GetPublications();
 			StateHasChanged();
 		}
@@ -212,7 +398,8 @@
 		}
 	}
 
-	private async Task<int> GetIdFromAccessToken()
+	private async Task<int>
+			GetIdFromAccessToken()
 	{
 		var accessToken = await Cookie.GetValue("access_token");
 
@@ -231,4 +418,10 @@
 	private bool IsUserFavouritePublication(Publication publication) =>
 	publication.Favorites is not null &&
 	publication.Favorites.Contains(userId.ToString());
+
+	private bool IsUserLikedPublication(IList<PublicationReaction> reactions) =>
+	reactions.GetLikes().FirstOrDefault(x => x.UserId == userId) is not null;
+
+	private bool IsUserDislikedPublication(IList<PublicationReaction> reactions) =>
+	reactions.GetDisLikes().FirstOrDefault(x => x.UserId == userId) is not null;
 }

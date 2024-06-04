@@ -47,7 +47,6 @@ public class TokenService(JwtSecurityTokenHandler tokenHandler)
 		Guard.Against.ExpiredRefreshToken(refreshToken);
 	}
 
-
 	private static string GenerateRefreshToken(string accessToken)
 	{
 		var sb = new StringBuilder();

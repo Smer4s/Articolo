@@ -2,7 +2,7 @@
 
 namespace WebAPI.Models.Commands.Publication;
 
-public class DeletePublicationCommand : IRequest
+public record DeletePublicationCommand : IRequest
 {
 	public int Id { get; init; }
 }

@@ -13,4 +13,8 @@ public interface IPublicationService
     Task UpdatePublication(Publication publication);
     Task AddPublicationToFavorites(int publicationId);
 	Task RemovePublicationFromFavorites(int publicationId);
+	Task LikePublication(int publicationId);
+	Task RemoveLikeFromPublication(int publicationId);
+	Task DislikePublication(int publicationId);
+	Task RemoveDislikeFromPublication(int publicationId);
 }

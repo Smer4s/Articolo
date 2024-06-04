@@ -15,9 +15,18 @@
 		{
 			<div class="account-menu">
 				<button class="account-menu-btn"  @onclick="GoToPersonalAccount">Личный кабинет</button>
-				@* <button class="account-menu-btn" @onclick="GoToPublications">Публикации</button> *@
+				 <button class="account-menu-btn" @onclick="GoToPublications">Публикации</button> 
 				<button class="account-menu-btn" @onclick="GoToFavorites">Закладки</button>
 				<button class="account-menu-btn" style="color:#CA5454" @onclick="Logout">Выйти</button>
+				@if(User.Role is "Admin")
+				{
+					<button class="account-menu-btn" style="color:#558CB7" @onclick="GoToModer">Модератор</button>
+					<button class="account-menu-btn" style="color:#CAA954" @onclick="GoToAdmin">Админ</button>
+				}
+				@if(User.Role is "Moderator")
+				{
+					<button class="account-menu-btn" style="color:#558CB7" @onclick="GoToModer">Модератор</button>
+				}
 			</div>
 		}
 	}
@@ -57,6 +66,16 @@
 		StateHasChanged();
 	}
 
+	private void GoToModer()
+	{
+		NavigationManager.NavigateTo("moder");
+	}
+
+	private void GoToAdmin()
+	{
+		NavigationManager.NavigateTo("admin");
+	}
+
 	private void GoToPersonalAccount()
 	{
 		NavigationManager.NavigateTo(Path.Combine("user"));
@@ -65,6 +84,7 @@
 	private void GoToPublications()
 	{
 		NavigationManager.NavigateTo(Path.Combine("user", "publications"));
+		//NavigationManager.NavigateTo("publication-create");
 	}
 
 	private void GoToFavorites()

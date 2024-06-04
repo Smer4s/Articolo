@@ -10,7 +10,7 @@ public class PublicationRepository(PostgreDbContext dbContext) : Repository<Publ
 	public IList<Publication> GetAll(Func<Publication, bool>? filter = null)
 	{
 		var pubs = dbContext.Publications.Include(x => x.Favourites)
-			.Include(x => x.Reactions);
+			.Include(x => x.Reactions).ThenInclude(x => x.Issuer);
 
 		if (filter is null)
 		{
@@ -22,6 +22,8 @@ public class PublicationRepository(PostgreDbContext dbContext) : Repository<Publ
 
 	public async Task<Publication?> GetPublication(int id) =>
 		await dbContext.Publications.Include(x => x.Comments)
+		.ThenInclude(x => x.Issuer)
+		.Include(x => x.Reactions)
 		.ThenInclude(x => x.Issuer)
 		.Where(x => x.Id == id)
 		.FirstOrDefaultAsync();

@@ -2,7 +2,7 @@
 
 namespace Infrastructure.Repositories;
 
-public class Repository<T>(PostgreDbContext dbContext) where T : BaseEntity
+public abstract class Repository<T>(PostgreDbContext dbContext) where T : BaseEntity
 {
 	public async Task Create(T entity)
 	{
@@ -22,7 +22,6 @@ public class Repository<T>(PostgreDbContext dbContext) where T : BaseEntity
 			await dbContext.SaveChangesAsync();
 		}
 	}
-
 	public async Task<T?> Find(Func<T, bool> predicate) =>
 		await Task.FromResult(dbContext.Set<T>().Where(predicate).FirstOrDefault());
 

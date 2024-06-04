@@ -67,14 +67,15 @@
 						<span>
 							@if (publication.Reactions is not null)
 							{
-								<span>likes:  @publication.Reactions.GetLikes() </span>
-								<span>dislikes: @publication.Reactions.GetDisLikes() </span>
-							}
-						</span>
-						<span>
-							@if (publication.Comments is not null)
-							{
-								<span>comments: @publication.Comments.Count </span>
+								<span>
+									<img src="/images/like_icon.png" />
+								</span>
+								<span style="color:#55B765">@publication.Reactions.GetLikes().Count()</span>
+
+								<span>
+									<img src="/images/dislike_icon.png" />
+								</span>
+								<span style="color:#CA5454">@publication.Reactions.GetDisLikes().Count()</span>
 							}
 						</span>
 					</div>

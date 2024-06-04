@@ -23,6 +23,10 @@
 			<div style="padding:inherit">
 				<span class="regular-large-text">Дата рождения: </span><br />
 				<InputDate TValue="DateTime?" class="auth-input" @bind-Value="@UpdateUser.BirthDay" />
+				@if (!isValid)
+				{
+					<label style="color:red">Вам должно быть минимум 14 лет.</label>
+				}
 			</div>
 
 			<div style="padding:inherit">
@@ -34,12 +38,11 @@
 				<div class="regular-large-text">
 					Статус:
 
-					@if (UpdateUser.Role == "Default")
+					@if (UpdateUser.Role is "Default")
 					{
 						<span class="regular-large-text" style="color:#558CB7;">
 							@UpdateUser.Role
 						</span>
-						<button class="auth-btn" style="max-width:20%; font-size:medium">Стать модератором</button>
 					}
 					else
 					{
@@ -87,6 +90,7 @@ else
 	User? UpdateUser { get; set; }
 
 	bool showEdit = true;
+	bool isValid = true;
 
 	void RevertUpdate()
 	{
@@ -94,8 +98,35 @@ else
 		StateHasChanged();
 	}
 
+	bool ValidateUpdate()
+	{
+		isValid = true;
+		if (UpdateUser!.BirthDay.HasValue)
+		{
+			if (UpdateUser.BirthDay.Value > DateTime.Now.AddYears(-14))
+			{
+				isValid = false;
+			}
+		}
+
+		// if (UpdateUser!.Email is not null)
+		// {
+		// 	if (!UpdateUser.Email.EndsWith("gmail.com") && !UpdateUser.Email.EndsWith("mail.ru"))
+		// 	{
+		// 		isValid = false;
+		// 	}
+		// }
+
+		return isValid;
+	}
+
 	async Task UpdateUserAsync()
 	{
+		if (!ValidateUpdate())
+		{
+			return;
+		}
+
 		await UserService.UpdateUser(UpdateUser);
 		User = await UserService.GetUser();
 		UpdateUser = Copy(User);

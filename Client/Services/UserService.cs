@@ -39,9 +39,19 @@ public class UserService(IIdentityProviderHttpClient httpClient, IOptions<ApiOpt
 
 	public Task Logout() => Task.CompletedTask;
 
-	public Task RegisterUser(AuthCredentials credentials)
+	public async Task RegisterUser(AuthCredentials user)
 	{
-		throw new NotImplementedException();
+		using var request = new HttpRequestMessage(HttpMethod.Post, _api.UserUrl);
+
+		var values = new Dictionary<string, object>()
+		{
+			{ "login", user.Login},
+			{"password", user.Password }
+		};
+
+		request.Content = new StringContent(values.ToJson(), null, "application/json");
+
+		await httpClient.SendAsync(request, CancellationToken.None);
 	}
 
 	public async Task UpdateUser(User user)

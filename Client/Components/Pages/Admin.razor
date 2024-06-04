@@ -7,136 +7,136 @@
 
 <PageTitle>Администратор</PageTitle>
 
-<div class="horizontal-boxes">
-  <div>
-    @if (Moders is null)
-    {
-      <p><em>@message</em></p>
-    }
-    else
-    {
-      <p>Модераторы:</p>
-      foreach (var moder in Moders)
-      {
-        <div class="article-box">
-          <div class="article-title">
-            @moder.Login
-          </div>
-          <div class="article-content">
-            @moder.UserName
-          </div>
-          <div class="article-content">
-            @moder.BirthDay
-          </div>
-          <div class="article-content">
-            @moder.Gender
-          </div>
-          <div class="article-content">
-            @moder.Email
-          </div>
-          <div class="article-content">
-            @moder.Description
-          </div>
-          <button @onclick="(()=>RemoveModerator(moder.Id))">
-            Убрать роль модератора
-          </button>
-        </div>
-      }
-    }
-  </div>
-  <div>
-    @if (Users is null)
-    {
-      <p><em>@message</em></p>
-    }
-    else
-    {
-      <p>Пользователи:</p>
-      foreach (var user in Users)
-      {
-        <div class="article-box">
-          <div class="article-title">
-            @user.Login
-          </div>
-          <div class="article-content">
-            @user.UserName
-          </div>
-          <div class="article-content">
-            @user.BirthDay
-          </div>
-          <div class="article-content">
-            @user.Gender
-          </div>
-          <div class="article-content">
-            @user.Email
-          </div>
-          <div class="article-content">
-            @user.Description
-          </div>
-          <button @onclick="(()=>AddModerator(user.Id))">
-            Назначить модератором
-          </button>
-        </div>
-      }
-    }
-  </div>
+<div class="pages-layout">
+	<div class="comments-box">
+		@if (Moders is null)
+		{
+			<p><em>@message</em></p>
+		}
+		else
+		{
+			<p class="article-title">Модераторы:</p>
+			foreach (var moder in Moders)
+			{
+				<div class="article-box" style="margin:3% 0">
+					<div class="regular-large-text">
+						Login: @moder.Login
+					</div>
+					<div class="regular-large-text">
+						Username: @moder.UserName
+					</div>
+					<div class="regular-large-text">
+						Дата рождения: @(DateOnly.FromDateTime(moder.BirthDay.GetValueOrDefault()))
+					</div>
+					<div class="regular-large-text">
+						Пол: @moder.GenderEnum
+					</div>
+					<div class="regular-large-text">
+						Email: @moder.Email
+					</div>
+					<div class="regular-large-text">
+					  Описание:	@moder.Description
+					</div>
+					<button class="auth-btn" style="background-color:#CA5454; font-size:large" @onclick="(()=>RemoveModerator(moder.Id))">
+						Убрать роль модератора
+					</button>
+				</div>
+			}
+		}
+	</div>
+	<div class="comments-box">
+		@if (Users is null)
+		{
+			<p><em>@message</em></p>
+		}
+		else
+		{
+			<p class="article-title">Пользователи:</p>
+			foreach (var user in Users)
+			{
+				<div class="article-box" style="margin:3% 0">
+					<div class="regular-large-text">
+						Login: @user.Login
+					</div>
+					<div class="regular-large-text">
+						Username: @user.UserName
+					</div>
+					<div class="regular-large-text">
+						Дата рождения: @(DateOnly.FromDateTime(user.BirthDay.GetValueOrDefault()))
+					</div>
+					<div class="regular-large-text">
+						Пол: @user.GenderEnum
+					</div>
+					<div class="regular-large-text">
+						Email: @user.Email
+					</div>
+					<div class="regular-large-text">
+						Описание: @user.Description
+					</div>
+					<button class="auth-btn" style="background-color:#55B765; font-size:large" @onclick="(()=>AddModerator(user.Id))">
+						Назначить модератором
+					</button>
+				</div>
+			}
+		}
+	</div>
 </div>
 
 @code {
-  User[]? Moders;
-  User[]? Users;
-  string? message;
+	User[]? Moders;
+	User[]? Users;
+	string? message;
 
-  async Task RemoveModerator(int id)
-  {
-    try
-    {
-      await AdminService.RemoveModerator(id);
-    }
-    catch (HttpRequestException)
-    {
-    }
-    finally
-    {
-      Moders = await AdminService.GetModerators();
-      Users = await AdminService.GetUsers();
-    }
-  }
+	async Task RemoveModerator(int id)
+	{
+		try
+		{
+			await AdminService.RemoveModerator(id);
+		}
+		catch (HttpRequestException)
+		{
+		}
+		finally
+		{
+			Moders = await AdminService.GetModerators();
+			Users = await AdminService.GetUsers();
+		}
+	}
 
-  async Task AddModerator(int id)
-  {
-    try
-    {
-      await AdminService.AddModerator(id);
-    }
-    catch (HttpRequestException)
-    {
-    }
-    finally
-    {
-      Moders = await AdminService.GetModerators();
-      Users = await AdminService.GetUsers();
-    }
-  }
+	async Task AddModerator(int id)
+	{
+		try
+		{
+			await AdminService.AddModerator(id);
+		}
+		catch (HttpRequestException)
+		{
+		}
+		finally
+		{
+			Moders = await AdminService.GetModerators();
+			Users = await AdminService.GetUsers();
+		}
+	}
 
-  protected override async Task OnAfterRenderAsync(bool firstRender)
-  {
-    message = "Загрузка...";
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		message = "Загрузка...";
 
-    if (!firstRender) return;
+		if (!firstRender) return;
 
-    try
-    {
-      Moders = await AdminService.GetModerators();
-      Users = await AdminService.GetUsers();
-      StateHasChanged();
-    }
-    catch (HttpRequestException e)
-    {
-      if (e.StatusCode is System.Net.HttpStatusCode.Forbidden or System.Net.HttpStatusCode.Unauthorized)
-      {
-        message = "У вас недостаточно прав для посещения этого ресурса";
-      }
-    }
-  }
+		try
+		{
+			Moders = await AdminService.GetModerators();
+			Users = await AdminService.GetUsers();
+			StateHasChanged();
+		}
+		catch (HttpRequestException e)
+		{
+			if (e.StatusCode is System.Net.HttpStatusCode.Forbidden or System.Net.HttpStatusCode.Unauthorized)
+			{
+				message = "У вас недостаточно прав для посещения этого ресурса";
+			}
+		}
+	}
 }

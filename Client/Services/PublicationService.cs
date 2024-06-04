@@ -53,10 +53,16 @@ public class PublicationService(IIdentityProviderHttpClient httpClient, IOptions
 
     public Task DeletePublication(int publicationId)
     {
-        throw new NotImplementedException();
-    }
+		throw new NotImplementedException();
+	}
 
-    public async Task<Publication?> GetPublication(int id)
+	public async Task DislikePublication(int publicationId)
+	{
+		using var request = new HttpRequestMessage(HttpMethod.Post, _api.PublicationUrl + $"/dislike/{publicationId}");
+		var response = await httpClient.SendAsync(request, CancellationToken.None);
+	}
+
+	public async Task<Publication?> GetPublication(int id)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, Path.Combine(_api.PublicationUrl, id.ToString()));
 
@@ -77,6 +83,24 @@ public class PublicationService(IIdentityProviderHttpClient httpClient, IOptions
 
         return JsonConvert.DeserializeObject<Publication[]>(content) ?? throw new JsonSerializationException();
     }
+
+	public async Task LikePublication(int publicationId)
+	{
+		using var request = new HttpRequestMessage(HttpMethod.Post, _api.PublicationUrl + $"/like/{publicationId}");
+		var response = await httpClient.SendAsync(request, CancellationToken.None);
+	}
+
+	public async Task RemoveDislikeFromPublication(int publicationId)
+	{
+		using var request = new HttpRequestMessage(HttpMethod.Delete, _api.PublicationUrl + $"/dislike/{publicationId}");
+		var response = await httpClient.SendAsync(request, CancellationToken.None);
+	}
+
+	public async Task RemoveLikeFromPublication(int publicationId)
+	{
+		using var request = new HttpRequestMessage(HttpMethod.Delete, _api.PublicationUrl + $"/like/{publicationId}");
+		var response = await httpClient.SendAsync(request, CancellationToken.None);
+	}
 
 	public async Task RemovePublicationFromFavorites(int publicationId)
 	{
