@@ -1,0 +1,159 @@
+﻿@page "/user/"
+@using Client.Components.Layout
+@using Client.Models
+@using Client.Models.Enums
+@using Client.Services.Abstractions
+@rendermode @(new InteractiveServerRenderMode(prerender:false))
+@layout MainLayout
+
+@if (UpdateUser is not null)
+{
+	<div class="pages-layout">
+		<div style="background-color:#FFFFFF;box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding:1% 1% 2%">
+			<div style="padding:inherit">
+				<span class="regular-large-text">Опишите себя: </span><br />
+				<InputText class="auth-input" @bind-Value="@UpdateUser.Description" />
+			</div>
+
+			<div style="padding:inherit">
+				<span class="regular-large-text">Пол: </span> <br />
+				<InputSelect TValue="Gender" class="auth-input" @bind-Value="@UpdateUser.GenderEnum" />
+			</div>
+
+			<div style="padding:inherit">
+				<span class="regular-large-text">Дата рождения: </span><br />
+				<InputDate TValue="DateTime?" class="auth-input" @bind-Value="@UpdateUser.BirthDay" />
+				@if (!isValid)
+				{
+					<label style="color:red">Вам должно быть минимум 14 лет.</label>
+				}
+			</div>
+
+			<div style="padding:inherit">
+				<span class="regular-large-text">Адрес электронной почты: </span><br />
+				<InputText class="auth-input" @bind-Value="@UpdateUser.Email" />
+			</div>
+
+			<div style="padding:inherit">
+				<div class="regular-large-text">
+					Статус:
+
+					@if (UpdateUser.Role is "Default")
+					{
+						<span class="regular-large-text" style="color:#558CB7;">
+							@UpdateUser.Role
+						</span>
+					}
+					else
+					{
+						<span class="regular-large-text" style="color:#CAA954">
+							@UpdateUser.Role
+						</span>
+					}
+				</div>
+			</div>
+
+			@if (showEdit)
+			{
+				<div style="display:grid; grid-template-columns: 30% 20%; grid-gap:5%; padding-top:2%">
+					<button class="auth-btn" style="background-color:#55B765; font-size:large"
+									@onclick="UpdateUserAsync">
+						Сохранить изменения
+					</button>
+					<button class="auth-btn" style="background-color:#CA5454; font-size:large"
+									@onclick="RevertUpdate">
+						Отменить
+					</button>
+				</div>
+			}
+			else
+			{
+				<div style="color:#55B765; font-size:x-large; text-align:center">
+					Изменения успешно сохранены!
+				</div>
+			}
+		</div>
+	</div>
+}
+else
+{
+	<em>Загрузка...</em>
+}
+
+
+@code {
+	[Inject]
+	public required IUserService UserService { get; set; }
+
+	User? User { get; set; }
+
+	User? UpdateUser { get; set; }
+
+	bool showEdit = true;
+	bool isValid = true;
+
+	void RevertUpdate()
+	{
+		UpdateUser = Copy(User);
+		StateHasChanged();
+	}
+
+	bool ValidateUpdate()
+	{
+		isValid = true;
+		if (UpdateUser!.BirthDay.HasValue)
+		{
+			if (UpdateUser.BirthDay.Value > DateTime.Now.AddYears(-14))
+			{
+				isValid = false;
+			}
+		}
+
+		// if (UpdateUser!.Email is not null)
+		// {
+		// 	if (!UpdateUser.Email.EndsWith("gmail.com") && !UpdateUser.Email.EndsWith("mail.ru"))
+		// 	{
+		// 		isValid = false;
+		// 	}
+		// }
+
+		return isValid;
+	}
+
+	async Task UpdateUserAsync()
+	{
+		if (!ValidateUpdate())
+		{
+			return;
+		}
+
+		await UserService.UpdateUser(UpdateUser);
+		User = await UserService.GetUser();
+		UpdateUser = Copy(User);
+		showEdit = false;
+	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (!firstRender) return;
+
+		User = await UserService.GetUser();
+		UpdateUser = Copy(User);
+		StateHasChanged();
+	}
+
+	private static User Copy(User user)
+	{
+		return new()
+			{
+				BirthDay = user.BirthDay,
+				Description = user.Description,
+				Email = user.Email,
+				Gender = user.Gender,
+				UserName = user.UserName,
+				Login = user.Login,
+				Role = user.Role,
+				Id = user.Id
+			};
+	}
+}

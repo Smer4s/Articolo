@@ -61,6 +61,8 @@ namespace Domain.Services
 			user.Gender = dto.Gender;
 			user.Description = dto.Description;
 			user.BirthDay = dto.BirthDay;
+
+			await userRepository.SaveChanges();
 		}
 
 		public async Task<IEnumerable<Publication>> GetFavorites(int id)

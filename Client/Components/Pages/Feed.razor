@@ -5,225 +5,423 @@
 @using Client.Models.Publication
 @using Microsoft.AspNetCore.Components.Authorization
 @using Client.Services.Abstractions
+@using System.IdentityModel.Tokens.Jwt
 @inject IPublicationService publicationService
 @inject NavigationManager nav
-@attribute [StreamRendering]
-@rendermode RenderMode.InteractiveServer
+@inject ICookie Cookie
+@rendermode @(new InteractiveServerRenderMode(prerender:false))
 
 <PageTitle>Лента</PageTitle>
 
 <div class="pages-layout">
-  <div class="grid-container">
-    <div class="feed-filters-box">
-      <div class="filters-title">Моя лента</div>
-    </div>
-    <div class="feed-leaderboard-box">
-      <div class="leaderboard-title">Лучшие статьи</div>
-      @if (Publications is null)
-      {
-        <p><em>Загрузка...</em></p>
-        <p style="color:red"><em>@connectionLost</em></p>
-      }
-      else
-      {
-        int count = 0;
-        @foreach (var publication in Publications.OrderBy(x => x.Rating))
-        {
-          if (count >= 4)
-            break;
-          count++;
-          <div class="leaderboard-content">
-            @publication.Title
-            <span style="align-self:flex-end">@publication.Rating⭐</span>
-          </div>
-        }
-      }
-    </div>
-    <div class="article-box">
-      @if (Publications is null)
-      {
-        <p><em>Загрузка...</em></p>
-        <h3 style="color:red">@connectionLost</h3>
-      }
-      else
-      {
-        foreach (var publication in Publications)
-        {
-          <div class="article">
-            <div>
-              <span>
-                @if (publication.Issuer is not null)
-                  @publication.Issuer.UserName
-              </span>
-              <span>
-                Опубликовано: @(publication.Created.ToTimeIntervalString())
-              </span>
-              <button @onclick="(()=>AddToFavorites(publication.Id))">
-                favourites: @publication.FavouritesCount
-              </button>
-            </div>
-            <span class="article-title">
-              @publication.Title
-            </span>
-            <div>
-              <span>
-                @if (publication.Reactions is not null)
-                {
-                  <span>likes:  @publication.Reactions.GetLikes() </span>
-                  <span>dislikes: @publication.Reactions.GetDisLikes() </span>
-                }
-              </span>
-              <span>
-                @if (publication.Comments is not null)
-                {
-                  <span>comments: @publication.Comments.Count </span>
-                }
-              </span>
-            </div>
-            <div>
-              @if (publication.Themes is not null)
-                @foreach (var theme in publication.Themes)
-                {
-                  <span>@theme.Title* </span>
-                }
-            </div>
-            <div class="article-content">
-              @publication.XmlDocumentUrl
-            </div>
-            <label style="color:red">@unathorizedMessage</label>
-            <button @onclick="(()=>ReadArticle(publication.Id))">Читать дальше</button>
-          </div>
-        }
-      }
-    </div>
-  </div>
+	<div class="grid-container" style="@((toggleFilters)?"grid-template-rows: 10% 70%;":"")">
+		<div class="feed-filters-box">
+			<button class="filters-title" style="background-color:#FFFFFF" @onclick="ToggleFilters">Моя лента</button>
+			@if (toggleFilters)
+			{
+				<div>
+					Фильтры
+				</div>
+			}
+		</div>
+		<div class="feed-leaderboard-box">
+			<div class="leaderboard-title">Лучшие статьи</div>
+			@if (Publications is null)
+			{
+				<p><em>Загрузка...</em></p>
+				<p style="color:red"><em>@connectionLost</em></p>
+			}
+			else
+			{
+				int count = 0;
+				@foreach (var publication in Publications.OrderByDescending(x => x.Rating))
+				{
+					if (count >= 4)
+						break;
+					count++;
+					<div class="leaderboard-content">
+						<a @onclick="(()=>ReadArticle(publication.Id))"> @publication.Title</a>
+						<span style="align-self:flex-end">@(Math.Round(publication.Rating, 1))⭐</span>
+					</div>
+				}
+			}
+		</div>
+		<div class="article-box">
+			@if (Publications is null)
+			{
+				<p><em>Загрузка...</em></p>
+				<h3 style="color:red">@connectionLost</h3>
+			}
+			else
+			{
+				foreach (var publication in Publications)
+				{
+					<div class="article" style="margin:3% 1%">
+						<div style="display:grid;grid-template-columns:70% 25%; grid-gap:5%">
+							<div>
+								<img src="https://cdn1.iconfinder.com/data/icons/user-pictures/101/malecostume-256.png" style="border-radius:50%; width:10%; height:100%" />
+								<span class="article-title" style="font-size:large">
+									@if (publication.Issuer is not null)
+									{
+										@if (string.IsNullOrEmpty(publication.Issuer.UserName))
+										{
+											<span>
+												@publication.Issuer.Login
+											</span>
+										}
+										else
+										{
+											<span>
+												@publication.Issuer.UserName
+											</span>
+										}
+									}
+									else
+									{
+										<em>
+											~Anonymous~
+										</em>
+									}
+								</span>
+							</div>
+							<button @onclick="(()=>AddToFavorites(publication.Id))" class="clear-btn">
+								@if (IsUserFavouritePublication(publication))
+								{
+									<img src="/images/fav_icon_2.png" />
+								}
+								else
+								{
+									<img src="/images/fav_icon.png" />
+								}
+								<span style="font-size:small; color:#CAA954; margin-left:5%; font-weight:bold">
+									@publication.FavouritesCount
+								</span>
+							</button>
+							<span style="color:#558CB7">
+								@(publication.Created.ToTimeIntervalString())
+							</span>
+							@if (unathorized)
+							{
+								<label style="color:red">Вам нужно войти в аккаунт</label>
+							}
+						</div>
+						<span class="article-title">
+							@publication.Title
+						</span>
+						<div>
+							<span>
+								@if (publication.Reactions is not null)
+								{
+									@if (!IsUserLikedPublication(publication.Reactions))
+									{
+										<button class="clear-btn" @onclick="(()=>AddLike(publication.Id))">
+											<img src="/images/like_icon.png" />
+										</button>
+									}
+									else
+									{
+										<button class="clear-btn" @onclick="(()=>RemoveLike(publication.Id))">
+											<img src="/images/like_icon_2.png" />
+										</button>
+									}
+									<span style="color:#55B765">@publication.Reactions.GetLikes().Count()</span>
+
+									@if (!IsUserDislikedPublication(publication.Reactions))
+									{
+										<button class="clear-btn" @onclick="(()=>AddDislike(publication.Id))">
+											<img src="/images/dislike_icon.png" />
+										</button>
+									}
+									else
+									{
+										<button class="clear-btn" @onclick="(()=>RemoveDislike(publication.Id))">
+											<img src="/images/dislike_icon_2.png" />
+										</button>
+									}
+									<span style="color:#CA5454">@publication.Reactions.GetDisLikes().Count()</span>
+
+								}
+							</span>
+						</div>
+						<div>
+							@if (publication.Themes is not null)
+								@foreach (var theme in publication.Themes)
+								{
+									<span>@theme.Title* </span>
+								}
+						</div>
+						<div class="article-content">
+							@publication.XmlDocumentUrl
+						</div>
+						<div>
+							<button class="inverse-auth-btn" style="max-width:30%;font-size:large; margin-top:1%" @onclick="(()=>ReadArticle(publication.Id))">Читать дальше</button>
+						</div>
+					</div>
+				}
+			}
+		</div>
+	</div>
 </div>
 
 @code {
-  private Publication[]? Publications;
-  private string? unathorizedMessage;
-  private string? connectionLost;
+	private Publication[]? Publications;
+	private bool unathorized = false;
+	private string? connectionLost;
+	private bool toggleFilters = false;
+	public int userId;
 
-  async Task AddToFavorites(int id)
-  {
-    try
-    {
-      await publicationService.AddPublicationToFavorites(id);
+	private void ToggleFilters()
+	{
+		toggleFilters = false;
+	}
 
-      Publications!.First(x => x.Id == id).FavouritesCount++;
-    }
-    catch (HttpRequestException e)
-    {
-      if (e.StatusCode is System.Net.HttpStatusCode.Unauthorized)
-        unathorizedMessage = "Вы не авторизованы";
-    }
-  }
+	async Task AddLike(int id)
+	{
+		try
+		{
+			userId = await GetIdFromAccessToken();
 
-  void ReadArticle(int id)
-  {
-    nav.NavigateTo(Path.Combine("article", id.ToString()));
-  }
+			if (userId is 0)
+			{
+				unathorized = true;
+				return;
+			}
 
-  protected override async Task OnInitializedAsync()
-  {
-    try
-    {
-      Publications = await publicationService.GetPublications();
-    }
-    catch (HttpRequestException)
-    {
-      connectionLost = "Проверьте подключение к интернету";
-    }
+			var publication = Publications!.First(x => x.Id == id);
 
-    // await Task.Delay(500);
-    // Publications = [
-    //   new Publication()
-    //     {
-    //       Id = 1,
-    //       Issuer = new Models.User()
-    //       {
-    //         UserName = "Username 1"
-    //       },
-    //       FavouritesCount = 10,
-    //       Comments = new Models.Comment.Comment[5],
-    //       Reactions = [
-    //                             new PublicationReaction()
-    //                             {
-    //                               Id = 1,
-    //                               ReactionType = Models.Enums.ReactionType.Like
-    //                             },
-    //         new PublicationReaction()
-    //         {
-    //           Id = 2,
-    //           ReactionType = Models.Enums.ReactionType.Dislike
-    //         },
-    //         new PublicationReaction()
-    //         {
-    //           Id = 3,
-    //           ReactionType = Models.Enums.ReactionType.Like
-    //         },
-    //         new PublicationReaction()
-    //         {
-    //           Id = 4,
-    //           ReactionType = Models.Enums.ReactionType.Like
-    //         }],
-    //       Themes = [new Theme() { Title = "theme 1" }, new Theme() { Title = "theme 2" }],
-    //       Rating = 3.4f,
-    //       Title = "Title 1awkdjkajwdkj",
-    //       XmlDocumentUrl = "XmlDocumentUrl",
-    //       Created = DateTime.Parse("11.04.2024 21:23")
-    //     },
-    //   new Publication()
-    //     {
-    //       Id = 2,
-    //       Issuer = new Models.User()
-    //       {
-    //         UserName = "Username 2"
-    //       },
-    //       FavouritesCount = 24,
-    //       Rating = 4.5f,
-    //       Title = "Titleawdkjhawjkdjaw 2",
-    //       XmlDocumentUrl = "XmlDocumentUrl 3",
-    //       Created = DateTime.Parse("10.04.2024 19:00")
-    //     },
-    //   new Publication()
-    //     {
-    //       Id = 3,
-    //       Issuer = new Models.User()
-    //       {
-    //         UserName = "Username 3"
-    //       },
-    //       FavouritesCount = 125,
-    //       Rating = 5f,
-    //       Title = "Title 3aidi92j1kdl21",
-    //       XmlDocumentUrl = "XmlDocumentUrl 4",
-    //       Created = DateTime.Parse("11.04.2023 19:00")
-    //     },
-    //   new Publication()
-    //     {
-    //       Id = 4,
-    //       Issuer = new Models.User()
-    //       {
-    //         UserName = "Username 4"
-    //       },
-    //       FavouritesCount = 165,
-    //       Rating = 4.2f,
-    //       Title = "Title2adijio2jdkla2jd2jlk 4",
-    //       XmlDocumentUrl = "XmlDocumentUrl 5",
-    //       Created = DateTime.Parse("12.04.2024 15:56")
-    //     },
-    //   new Publication()
-    //     {
-    //       Id = 5,
-    //       Issuer = new Models.User()
-    //       {
-    //         UserName = "Username 5"
-    //       },
-    //       FavouritesCount = 1625,
-    //       Rating = 4.67f,
-    //       Title = "Title2adijioawd12d2jdkla2jd2jlk 6",
-    //       XmlDocumentUrl = "XmlDocumentUrl 55125",
-    //       Created = DateTime.Parse("11.04.2024 21:52")
-    //     }];
-  }
+			if (publication.Reactions is null)
+			{
+				publication.Reactions = [];
+			}
+
+			if (IsUserDislikedPublication(publication.Reactions))
+			{
+				await RemoveDislike(publication.Id);
+			}
+
+			if (IsUserLikedPublication(publication.Reactions))
+			{
+				await RemoveLike(publication.Id);
+				return;
+			}
+
+			publication.Reactions.Add(new PublicationReaction()
+				{
+					UserId = userId,
+					ReactionType = Models.Enums.ReactionType.Like
+				});
+
+			await publicationService.LikePublication(id);
+
+			StateHasChanged();
+		}
+		catch (HttpRequestException e)
+		{
+			if (e.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+				unathorized = true;
+		}
+	}
+
+	async Task RemoveLike(int id)
+	{
+		try
+		{
+			userId = await GetIdFromAccessToken();
+
+			if (userId is 0)
+			{
+				unathorized = true;
+				return;
+			}
+
+			var publication = Publications!.First(x => x.Id == id);
+
+			if (publication.Reactions is null)
+				return;
+
+			var reaction = publication.Reactions.FirstOrDefault(x => x.UserId == userId && x.ReactionType is Models.Enums.ReactionType.Like);
+
+			if (reaction is null)
+				return;
+
+			publication.Reactions.Remove(reaction);
+			await publicationService.RemoveLikeFromPublication(id);
+
+			StateHasChanged();
+		}
+		catch (HttpRequestException e)
+		{
+			if (e.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+				unathorized = true;
+		}
+	}
+
+	async Task AddDislike(int id)
+	{
+		try
+		{
+			userId = await GetIdFromAccessToken();
+
+			if (userId is 0)
+			{
+				unathorized = true;
+				return;
+			}
+
+			var publication = Publications!.First(x => x.Id == id);
+
+			if (publication.Reactions is null)
+			{
+				publication.Reactions = [];
+			}
+
+			if (IsUserLikedPublication(publication.Reactions))
+			{
+				await RemoveLike(publication.Id);
+			}
+
+			if (IsUserDislikedPublication(publication.Reactions))
+			{
+				await RemoveDislike(publication.Id);
+				return;
+			}
+
+			publication.Reactions.Add(new PublicationReaction()
+				{
+					UserId = userId,
+					ReactionType = Models.Enums.ReactionType.Dislike
+				});
+
+			await publicationService.DislikePublication(id);
+
+			StateHasChanged();
+		}
+		catch (HttpRequestException e)
+		{
+			if (e.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+				unathorized = true;
+		}
+	}
+
+	async Task RemoveDislike(int id)
+	{
+		try
+		{
+			userId = await GetIdFromAccessToken();
+
+			if (userId is 0)
+			{
+				unathorized = true;
+				return;
+			}
+
+			var publication = Publications!.First(x => x.Id == id);
+
+			if (publication.Reactions is null)
+				return;
+
+			var reaction = publication.Reactions.FirstOrDefault(
+				x => x.UserId == userId &&
+				x.ReactionType is Models.Enums.ReactionType.Dislike);
+
+			if (reaction is null)
+				return;
+
+			publication.Reactions.Remove(reaction);
+			await publicationService.RemoveDislikeFromPublication(id);
+
+			StateHasChanged();
+		}
+		catch (HttpRequestException e)
+		{
+			if (e.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+				unathorized = true;
+		}
+	}
+
+	async Task AddToFavorites(int id)
+	{
+		try
+		{
+			userId = await GetIdFromAccessToken();
+
+			if (userId is 0)
+			{
+				unathorized = true;
+				return;
+			}
+
+			var publication = Publications!.First(x => x.Id == id);
+
+			if (publication.Favorites is not null && publication.Favorites.Contains(userId.ToString()))
+			{
+				await publicationService.RemovePublicationFromFavorites(id);
+				publication.Favorites.Remove(userId.ToString());
+			}
+			else
+			{
+				await publicationService.AddPublicationToFavorites(id);
+
+				if (publication.Favorites is null)
+					publication.Favorites = new List<string>
+							();
+
+				publication.Favorites.Add(userId.ToString());
+			}
+
+			StateHasChanged();
+		}
+		catch (HttpRequestException e)
+		{
+			if (e.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+				unathorized = true;
+		}
+	}
+
+	void ReadArticle(int id)
+	{
+		nav.NavigateTo(Path.Combine("article", id.ToString()));
+	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (!firstRender) return;
+		try
+		{
+			userId = await GetIdFromAccessToken();
+			Publications = await publicationService.GetPublications();
+			StateHasChanged();
+		}
+		catch (HttpRequestException)
+		{
+			connectionLost = "Проверьте подключение к интернету";
+		}
+	}
+
+	private async Task<int>
+			GetIdFromAccessToken()
+	{
+		var accessToken = await Cookie.GetValue("access_token");
+
+		if (string.IsNullOrEmpty(accessToken)) return 0;
+
+		var jwt = new JwtSecurityToken(accessToken);
+
+		var strId = jwt.Claims.First(x => x.Type == ClaimsIdentity.DefaultNameClaimType).Value;
+
+		if (int.TryParse(strId, out int value))
+			return value;
+
+		return 0;
+	}
+
+	private bool IsUserFavouritePublication(Publication publication) =>
+	publication.Favorites is not null &&
+	publication.Favorites.Contains(userId.ToString());
+
+	private bool IsUserLikedPublication(IList<PublicationReaction> reactions) =>
+	reactions.GetLikes().FirstOrDefault(x => x.UserId == userId) is not null;
+
+	private bool IsUserDislikedPublication(IList<PublicationReaction> reactions) =>
+	reactions.GetDisLikes().FirstOrDefault(x => x.UserId == userId) is not null;
 }

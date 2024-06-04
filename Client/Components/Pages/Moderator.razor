@@ -1,86 +1,137 @@
 ﻿@page "/moder"
 
+@using Client.Extensions
 @using Client.Models.Publication
 @using Client.Services.Abstractions
 @inject IModeratorService ModeratorService
-@rendermode InteractiveServer
+@inject NavigationManager nav
+@rendermode @(new InteractiveServerRenderMode(prerender:false))
 
 <PageTitle>Модератор</PageTitle>
 
-<div class="horizontal-boxes">
-    @if (Publications is null)
-    {
-        <p><em>@message</em></p>
-    }
-    else
-    {
-        foreach (var publication in Publications)
-        {
-            <div class="article-box">
-                <div class="article-title">
-                    @publication.Title
-                </div>
-                <div class="article-content">
-                    @publication.XmlDocumentUrl
-                </div>
-                <button @onclick="(()=>ApprovePublication(publication.Id))">
-                    Опубликовать
-                </button>
-                <button @onclick="(()=>DeclinePublication(publication.Id))">
-                    Отклонить
-                </button>
-            </div>
-        }
-    }
+<div class="pages-layout">
+
+	@if (Publications is null)
+	{
+		<p><em>@message</em></p>
+	}
+	else
+	{
+		foreach (var publication in Publications)
+		{
+			<div class="article" style="margin:3% 1%">
+				<div style="display:grid;grid-template-columns:70% 25%; grid-gap:5%">
+					<div>
+						<img src="https://cdn1.iconfinder.com/data/icons/user-pictures/101/malecostume-256.png" style="border-radius:50%; width:10%; height:100%" />
+						<span class="article-title" style="font-size:large">
+							@if (publication.Issuer is not null)
+							{
+								@if (string.IsNullOrEmpty(publication.Issuer.UserName))
+								{
+									<span>
+										@publication.Issuer.Login
+									</span>
+								}
+								else
+								{
+									<span>
+										@publication.Issuer.UserName
+									</span>
+								}
+							}
+							else
+							{
+								<em>
+									~Anonymous~
+								</em>
+							}
+						</span>
+					</div>
+					<span style="color:#558CB7">
+						@(publication.Created.ToTimeIntervalString())
+					</span>
+				</div>
+				<span class="article-title">
+					@publication.Title
+				</span>
+				<div class="article-content">
+					@publication.XmlDocumentUrl
+				</div>
+				<div style="margin: 0 0 2% 0">
+					<button class="inverse-auth-btn" style="max-width:30%;font-size:large; margin-top:1%" @onclick="(()=>ReadArticle(publication.Id))">
+						Читать дальше
+					</button>
+				</div>
+				<div style="display:flex;">
+					<button class="auth-btn" style="background-color:#55B765; font-size:large" @onclick="(()=>ApprovePublication(publication.Id))">
+						Опубликовать
+					</button>
+					<button class="auth-btn" style="background-color:#CA5454; font-size:large" @onclick="(()=>DeclinePublication(publication.Id))">
+						Отклонить
+					</button>
+				</div>
+
+			</div>
+		}
+	}
 </div>
 
+
 @code {
-    Publication[]? Publications;
-    string? message;
+	Publication[]? Publications;
+	string? message;
 
-    async Task DeclinePublication(int id)
-    {
-        try
-        {
-            await ModeratorService.DeclinePublication(id);
-        }
-        catch (HttpRequestException)
-        {
-        }
-        finally
-        {
-            Publications = await ModeratorService.GetPublications();
-        }
-    }
+	async Task DeclinePublication(int id)
+	{
+		try
+		{
+			await ModeratorService.DeclinePublication(id);
+		}
+		catch (HttpRequestException)
+		{
+		}
+		finally
+		{
+			Publications = await ModeratorService.GetPublications();
+		}
+	}
 
-    async Task ApprovePublication(int id)
-    {
-        try
-        {
-            await ModeratorService.ApprovePublication(id);
-        }
-        catch (HttpRequestException)
-        {
-        }
-        finally
-        {
-            Publications = await ModeratorService.GetPublications();
-        }
-    }
+	async Task ApprovePublication(int id)
+	{
+		try
+		{
+			await ModeratorService.ApprovePublication(id);
+		}
+		catch (HttpRequestException)
+		{
+		}
+		finally
+		{
+			Publications = await ModeratorService.GetPublications();
+		}
+	}
 
-    protected override async Task OnInitializedAsync()
-    {
-        message = "Загрузка...";
-        try
-        {
-            Publications = await ModeratorService.GetPublications();
-        }
-        catch (HttpRequestException e)
-        {
-            if (e.StatusCode is System.Net.HttpStatusCode.Forbidden or System.Net.HttpStatusCode.Unauthorized)
-            {
-                message = "У вас недостаточно прав для посещения этого ресурса";
-            }
-        }
-    }
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		message = "Загрузка...";
+
+		if (!firstRender) return;
+
+		try
+		{
+			Publications = await ModeratorService.GetPublications();
+			StateHasChanged();
+		}
+		catch (HttpRequestException e)
+		{
+			if (e.StatusCode is System.Net.HttpStatusCode.Forbidden or System.Net.HttpStatusCode.Unauthorized)
+			{
+				message = "У вас недостаточно прав для посещения этого ресурса";
+			}
+		}
+	}
+	void ReadArticle(int id)
+	{
+		nav.NavigateTo(Path.Combine("article", id.ToString()));
+	}
 }

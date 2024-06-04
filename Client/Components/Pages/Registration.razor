@@ -2,7 +2,9 @@
 @using Client.Components.Layout
 @using Client.Models.Auth
 @using Client.Services.Abstractions
-@inject IAuthenticationService AuthService
+@inject IUserService AuthService
+@inject IAuthenticationService LoginService
+@inject ICookie cookieService
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 @layout AuthLayout
@@ -15,18 +17,28 @@
 
 		<div class="element">
 			<label for="username">Логин</label>
-			<InputText class="auth-input" type="text" id="username" @bind-Value="credentials.Login" />
+			<InputText class="auth-input" @bind-Value="credentials.Login" />
 		</div>
 
 		<div class="element">
 			<label for="password">Пароль</label>
-			<InputText class="auth-input" type="password" id="password" @bind-Value="credentials.Password" />
+			<InputText class="auth-input" type="password" @bind-Value="credentials.Password" />
 		</div>
 
 		<div class="element">
 			<label for="password">Повторите пароль</label>
-			<input class="auth-input" type="password" id="confirm-password" />
+			<input class="auth-input" type="password" @bind-value="confirmPassword" />
 		</div>
+
+		@if (!isValidPassword && confirmPassword != credentials.Password)
+		{
+			<label style="color:red">Пароли должны совпадать</label>
+		}
+		else if (!isValidPassword)
+		{
+			<label style="color:red">Пароль должен иметь длину минимум <br />
+				8 символов и содержать буквы и цифры</label>
+		}
 
 		<button class="auth-btn element" @onclick="Register">Регистрация</button>
 
@@ -40,9 +52,34 @@
 @code {
 	AuthCredentials credentials = new();
 
+	string confirmPassword = "";
+
+	bool isValidPassword = true;
+
+	bool ValidatePassword()
+	{
+		isValidPassword = true;
+		if (credentials.Password.Length < 8)
+			isValidPassword = false;
+
+		if (!credentials.Password.Any(c => char.IsDigit(c)) && !credentials.Password.Any(c => char.IsLetter(c)))
+			isValidPassword = false;
+
+		if (confirmPassword != credentials.Password)
+			isValidPassword = false;
+
+		return isValidPassword;
+	}
+
 	async Task Register()
 	{
+		if (!ValidatePassword())
+			return;
+
 		await AuthService.RegisterUser(credentials);
-		NavigationManager.NavigateTo("/auth");
+		var tokens = await LoginService.Authenticate(credentials);
+		await cookieService.SetValue("access_token", tokens.AccessToken);
+		await cookieService.SetValue("refresh_token", tokens.RefreshToken);
+		NavigationManager.NavigateTo("/feed");
 	}
 }

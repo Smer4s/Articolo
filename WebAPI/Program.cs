@@ -1,9 +1,3 @@
-using Domain.Entities;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authentication.OAuth;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
 using WebAPI.Configurations;
 using WebAPI.Middleware;
 using ApplicationDependencyInjection = WebAPI.Configurations.DependencyInjection;

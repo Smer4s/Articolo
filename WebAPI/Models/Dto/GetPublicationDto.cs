@@ -10,6 +10,7 @@ public record GetPublicationDto
 	public string Title { get; init; } = null!;
 	public string Status { get; init; } = null!;
 	public string XmlDocumentUrl { get; init; } = null!;
+	public GetUserDto Issuer { get; init; } = null!;
 
 	public IList<ThemeDto> Themes { get; init; } = null!;
 
@@ -17,7 +18,11 @@ public record GetPublicationDto
 
 	public IList<PublicationReactionDto>? Reactions { get; init; } = null!;
 
+	public IList<string> Favorites { get; init; } = null!;
+
 	public int FavouritesCount { get; init; }
+
+	public DateTime Created { get; init; }
 
 	public float Rating { get; init; }
 }

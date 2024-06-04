@@ -63,6 +63,19 @@ public class PublicationController(IMediator mediator) : ControllerBase
 		return Ok();
 	}
 
+	[HttpDelete("favorites/{id}")]
+	[Authorize]
+	public async Task<IActionResult> RemoveFromFavorites(int id)
+	{
+		await mediator.Send(new RemovePublicationFromFavoritesCommand
+		{
+			Id = id,
+			UserId = User.GetId(),
+		});
+
+		return Ok();
+	}
+
 	[HttpPut]
 	[Authorize]
 	public async Task<IActionResult> EditMyPublication(UpdatePublicationDto dto)
@@ -89,6 +102,70 @@ public class PublicationController(IMediator mediator) : ControllerBase
 			Id = User.GetId()
 		};
 		
+		await mediator.Send(command);
+
+		return Ok();
+	}
+
+	[HttpPost("like/{id}")]
+	[Authorize]
+	public async Task<IActionResult> LikePublication([FromRoute] int id)
+	{
+		var command = new AddReactionToPublicationCommand()
+		{
+			PublicationId = id,
+			ReactionType = Domain.Enums.ReactionType.Like,
+			UserId = User.GetId()
+		};
+
+		await mediator.Send(command);
+
+		return Ok();
+	}
+
+	[HttpDelete("like/{id}")]
+	[Authorize]
+	public async Task<IActionResult> RemoveLikePublication([FromRoute] int id)
+	{
+		var command = new RemoveReactionFromPublicationCommand
+		{
+			PublicationId = id,
+			ReactionType = Domain.Enums.ReactionType.Like,
+			UserId = User.GetId()
+		};
+
+		await mediator.Send(command);
+
+		return Ok();
+	}
+
+	[HttpPost("dislike/{id}")]
+	[Authorize]
+	public async Task<IActionResult> DislikePublication([FromRoute] int id)
+	{
+		var command = new AddReactionToPublicationCommand()
+		{
+			PublicationId = id,
+			ReactionType = Domain.Enums.ReactionType.Dislike,
+			UserId = User.GetId()
+		};
+
+		await mediator.Send(command);
+
+		return Ok();
+	}
+
+	[HttpDelete("dislike/{id}")]
+	[Authorize]
+	public async Task<IActionResult> RemoveDislikePublication([FromRoute] int id)
+	{
+		var command = new RemoveReactionFromPublicationCommand
+		{
+			PublicationId = id,
+			ReactionType = Domain.Enums.ReactionType.Dislike,
+			UserId = User.GetId()
+		};
+
 		await mediator.Send(command);
 
 		return Ok();

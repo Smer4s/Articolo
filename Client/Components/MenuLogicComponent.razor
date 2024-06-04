@@ -1,0 +1,104 @@
+﻿@using Client.Models
+@using Client.Services.Abstractions
+@rendermode @(new InteractiveServerRenderMode(prerender:false))
+
+<button class="account" @onclick="ToggleMenu">
+	@if (User is null)
+	{
+		<a class="account-username" href="/auth">Войти</a>
+	}
+	else
+	{
+		<div class="account-username">@(User.UserName ?? User.Login)</div>
+		<img src="https://cdn1.iconfinder.com/data/icons/user-pictures/101/malecostume-256.png" style="border-radius:50%; width:100%; height:100%" />
+		@if (showMenu)
+		{
+			<div class="account-menu">
+				<button class="account-menu-btn"  @onclick="GoToPersonalAccount">Личный кабинет</button>
+				 <button class="account-menu-btn" @onclick="GoToPublications">Публикации</button> 
+				<button class="account-menu-btn" @onclick="GoToFavorites">Закладки</button>
+				<button class="account-menu-btn" style="color:#CA5454" @onclick="Logout">Выйти</button>
+				@if(User.Role is "Admin")
+				{
+					<button class="account-menu-btn" style="color:#558CB7" @onclick="GoToModer">Модератор</button>
+					<button class="account-menu-btn" style="color:#CAA954" @onclick="GoToAdmin">Админ</button>
+				}
+				@if(User.Role is "Moderator")
+				{
+					<button class="account-menu-btn" style="color:#558CB7" @onclick="GoToModer">Модератор</button>
+				}
+			</div>
+		}
+	}
+</button>
+
+@code {
+	[Inject]
+	public required ICookie CookieService { get; set; }
+
+	[Inject]
+	public required IUserService UserService { get; set; }
+
+	[Inject]
+	public required NavigationManager NavigationManager { get; set; }
+
+	public User? User { get; protected set; }
+	private bool showMenu = false;
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (!firstRender) return;
+
+		try
+		{
+			User = await UserService.GetUser();
+			StateHasChanged();
+		}
+		catch (HttpRequestException e)
+		{
+			if (e.StatusCode is not System.Net.HttpStatusCode.Unauthorized) throw;
+		}
+	}
+
+	public void ToggleMenu()
+	{
+		showMenu = !showMenu;
+		StateHasChanged();
+	}
+
+	private void GoToModer()
+	{
+		NavigationManager.NavigateTo("moder");
+	}
+
+	private void GoToAdmin()
+	{
+		NavigationManager.NavigateTo("admin");
+	}
+
+	private void GoToPersonalAccount()
+	{
+		NavigationManager.NavigateTo(Path.Combine("user"));
+	}
+
+	private void GoToPublications()
+	{
+		NavigationManager.NavigateTo(Path.Combine("user", "publications"));
+		//NavigationManager.NavigateTo("publication-create");
+	}
+
+	private void GoToFavorites()
+	{
+		NavigationManager.NavigateTo(Path.Combine("user", "favs"));
+	}
+
+	private async Task Logout()
+	{
+		await UserService.Logout();
+		await CookieService.DeleteCookie("access_token");
+		await CookieService.DeleteCookie("refresh_token");
+		User = null;
+
+		StateHasChanged();
+	}
+}

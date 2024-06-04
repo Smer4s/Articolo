@@ -1,28 +1,94 @@
 ﻿@page "/publication-create"
+@using Client.Components.Layout
+@using Client.Models
 @using Client.Models.Publication
 @using Client.Services.Abstractions
-@inject IPublicationService PublicationService 
-@rendermode InteractiveServer
+@inject IPublicationService PublicationService
+@layout MainLayout
+
+@rendermode @(new InteractiveServerRenderMode(prerender:false))
 
 <PageTitle>Создание публикации</PageTitle>
 
 <div class="horizontal-boxes">
-    <p>
-        Введите название:
-        <InputText @bind-Value=publication.Title />
-    </p>
-    <p>
-        Введите содержание:
-        <InputText @bind-Value=publication.XmlDocumentUrl />
-    </p>
-    <button @onclick="PostPublication">Отправить на модерацию</button>
+	<div style="background-color:#FFFFFF;box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin:2% 5%; padding:1% 1% 2%; align-items:flex-start; display:flex; flex-direction:column">
+		<div>
+			<InputText class="auth-input" placeholder="Заголовок" @bind-Value=publication.Title style="min-width:50vw" />
+		</div>
+		<div>
+			<InputTextArea class="auth-input" placeholder="Содержание" style="min-width:80vw;min-height:70vh" @bind-Value=publication.XmlDocumentUrl />
+		</div>
+
+		@if (failure)
+		{
+			<label style="color:red; font-size:large">Название статьи и содержание не должны быть пустыми</label>
+		}
+		@if (!success)
+		{
+			<button class="auth-btn" style="max-width:30%;" @onclick="PostPublication">Отправить на модерацию</button>
+		}
+		else
+		{
+			<span style="color:#55B765">Публикация успешно отправлена!</span>
+			<a href="/feed">На главную</a>
+		}
+		
+
+	</div>
 </div>
 
 @code {
-    Publication publication = new();
+	Publication publication = new();
+	bool success = false;
+	bool failure = false;
 
-    async Task PostPublication()
-    {
-        await PublicationService.CreatePublication(publication);
-    }
+
+	[Inject]
+	public required IUserService UserService { get; set; }
+	User User = new();
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (!firstRender) return;
+
+		try
+		{
+			User = await UserService.GetUser();
+			StateHasChanged();
+		}
+		catch (HttpRequestException e)
+		{
+			if (e.StatusCode is not System.Net.HttpStatusCode.Unauthorized) throw;
+		}
+	}
+
+	async Task PostPublication()
+	{
+		if (ValidateArticle())
+		{
+			StateHasChanged();
+			return;
+		}
+		publication.Created = DateTime.Now;
+		publication.Issuer = User;
+
+		await PublicationService.CreatePublication(publication);
+
+		success = true;
+
+		StateHasChanged();
+	}
+
+	bool ValidateArticle()
+	{
+		failure = false;
+
+		if (string.IsNullOrEmpty(publication.Title))
+			failure = true;
+
+		if (string.IsNullOrEmpty(publication.XmlDocumentUrl))
+			failure = true;
+
+		return failure;
+	}
 }
